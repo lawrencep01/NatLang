@@ -1,0 +1,10 @@
+### Test Home Route
+GET http://127.0.0.1:5000/
+
+### Test Natural Language Query
+POST http://127.0.0.1:5000/queries
+Content-Type: application/json
+
+{
+    "query": "remove the Beatles from artists"
+}
