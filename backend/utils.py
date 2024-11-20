@@ -1,4 +1,4 @@
-from database import get_db_connection
+from .database import get_db_connection
 from collections import defaultdict
 import re
 

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from utils import fetch_table_schema, fetch_table_list, get_table_name, get_where_clause, get_new_rows
+from backend.utils import fetch_table_schema, fetch_table_list, get_table_name, get_where_clause, get_new_rows
 
 # Mock cursor class allowing for data to be dynamically passed
 class MockCursor:
@@ -58,7 +58,7 @@ def test_fetch_table_schema(mocker):
     }
 
     # Patch the database connection
-    mocker.patch('utils.get_db_connection', return_value=MockConnection(mock_data))
+    mocker.patch('backend.utils.get_db_connection', return_value=MockConnection(mock_data))
 
     # Call the function to test
     schema = fetch_table_schema()
@@ -83,7 +83,7 @@ def test_fetch_table_list(mocker):
     }
 
     # Patch the database connection
-    mocker.patch('utils.get_db_connection', return_value=MockConnection(mock_data))
+    mocker.patch('backend.utils.get_db_connection', return_value=MockConnection(mock_data))
 
     # Call the function to test
     tables = fetch_table_list()
