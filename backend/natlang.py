@@ -4,6 +4,7 @@ from config import Config
 OpenAI.api_key = Config.OPENAI_API_KEY
 openai_client = OpenAI(api_key=OpenAI.api_key)
 
+
 def convert_query(prompt, schema_description):
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
@@ -11,9 +12,9 @@ def convert_query(prompt, schema_description):
             {
                 "role": "system",
                 "content": (
-                    f"You are specialized in generating SQL queries suitable for PostgreSQL. "
-                    f"Provide only the SQL queries without any extra text, explanation, formatting, or markdowns. "
-                    f"Handle multi-step operations if required and output the queries in order of execution. "
+                    f"You are specialized in generating SQL queries suitable for PostgreSQL."
+                    f"Provide only the SQL queries without any extra text, explanation, formatting, or markdowns."
+                    f"Handle multi-step operations if required and output the queries in order of execution."
                     f"Assume the table schema is as follows:\n{schema_description}"
                 ),
             },
