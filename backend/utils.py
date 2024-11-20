@@ -1,9 +1,9 @@
 from database import get_db_connection
 from collections import defaultdict
+import re
 
 
-# Fetch table schema data from the database to be used as input for
-# OpenAI's API
+# Fetch table schema data from the database to be used as input for OpenAI's API
 def fetch_table_schema():
     try:
         with get_db_connection() as connection:
@@ -52,3 +52,35 @@ def fetch_table_list():
     except Exception as e:
         print(f"Error fetching table list: {e}")
         return []
+
+
+# Extract table name from INSERT query
+def get_table_name(query, query_type):
+    pattern = ""
+    if query_type == "insert":
+        pattern = r"insert\s+into\s+(\w+)"
+    elif query_type == "delete":
+        pattern = r"delete\s+from\s+(\w+)"
+    match = re.search(pattern, query, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    else:
+        return ""
+
+
+# Extract WHERE clause from DELETE query
+def get_where_clause(query):
+    pattern = r"where\s+(.+)"
+    match = re.search(pattern, query, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    else:
+        return ""
+
+
+# Compare before and after states to determine new rows
+def get_new_rows(pre, post):
+    pre_set = set(tuple(row.items()) for row in pre)
+    post_set = set(tuple(row.items()) for row in post)
+    new_rows = [dict(row) for row in (post_set - pre_set)]
+    return new_rows

@@ -20,7 +20,11 @@ const TableList = () => {
   }, []);
 
   if (error) {
-    return <div><h3>{error}</h3></div>;
+    return (
+      <div>
+        <h3>{error}</h3>
+      </div>
+    );
   }
 
   return (

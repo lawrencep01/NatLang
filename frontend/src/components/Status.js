@@ -18,7 +18,11 @@ const Status = () => {
     fetchStatus();
   }, []);
 
-  return <div><p style={{ fontSize: "small", fontStyle: "italic" }}>{Status}</p></div>;
+  return (
+    <div>
+      <p style={{ fontSize: "small", fontStyle: "italic" }}>{Status}</p>
+    </div>
+  );
 };
 
 export default Status;

@@ -1,35 +1,36 @@
 // components/QueryResults.js
 import React from "react";
+import Table from "./Table";
 
 const QueryResults = ({ results }) => {
   if (!results.length) {
     return null;
   }
+
   return (
     <div>
-      <h4>Query Results:</h4>
+      <h4>Results:</h4>
       {results.map((result, index) => (
         <div key={index}>
           <p>Query: {result.Query}</p>
-          {Array.isArray(result.Results) && (
-            <table border="1">
-              <thead>
-                <tr>
-                  {Object.keys(result.Results[0]).map((key) => (
-                    <th key={key}>{key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.Results.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {Object.values(row).map((value, colIndex) => (
-                      <td key={colIndex}>{value}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {result.Action === "insert" &&
+          Array.isArray(result.NewRows) &&
+          result.NewRows.length > 0 ? (
+            <div>
+              <p>{result.Message}</p>
+              <Table data={result.NewRows} highlight="insert" />
+            </div>
+          ) : result.Action === "delete" &&
+            Array.isArray(result.DeletedRows) &&
+            result.DeletedRows.length > 0 ? (
+            <div>
+              <p>{result.Message}</p>
+              <Table data={result.DeletedRows} highlight="delete" />
+            </div>
+          ) : Array.isArray(result.Results) && result.Results.length > 0 ? (
+            <Table data={result.Results} />
+          ) : (
+            <p>{result.Message || "No data returned by this query"}</p>
           )}
         </div>
       ))}
