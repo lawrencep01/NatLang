@@ -1,9 +1,11 @@
 // components/TableList.js
 import React, { useEffect, useState } from "react";
 import api from "../services/api";
+import TableDetails from "./TableDetails";
 
-const TableList = () => {
+const Database = () => {
   const [tables, setTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -19,6 +21,15 @@ const TableList = () => {
     fetchTables();
   }, []);
 
+  const handleTableClick = async (tableName) => {
+    try {
+      const response = await api.get(`/table-details/${tableName}`);
+      setSelectedTable(response.data);
+    } catch (error) {
+      setError("Failed to fetch table details.");
+    }
+  };
+
   if (error) {
     return (
       <div>
@@ -32,11 +43,14 @@ const TableList = () => {
       <h3>Database Tables:</h3>
       <ul>
         {tables.map((table, index) => (
-          <li key={index}>{table}</li>
+          <li key={index} onClick={() => handleTableClick(table)}>
+            {table}
+          </li>
         ))}
       </ul>
+      {selectedTable && <TableDetails table={selectedTable} />}
     </div>
   );
 };
 
-export default TableList;
+export default Database;
