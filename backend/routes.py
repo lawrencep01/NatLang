@@ -26,55 +26,43 @@ def setup_routes(app):
         if not tables:
             return jsonify({"error": "Failed to fetch table list"}), 500
         return jsonify({"tables": tables}), 200
-    
-    # Fetch details of a specific table
+
     @app.route("/table-details/<table_name>", methods=["GET"])
     def get_table_details(table_name):
         try:
+            print("Calling get_db_connection...")  # Debugging
             with get_db_connection() as connection:
                 with connection.cursor(cursor_factory=RealDictCursor) as cursor:
-                    # Parameterized query for string value
-                    columns_query = """
-                    SELECT
-                        column_name,
-                        data_type,
-                        column_default
-                    FROM
-                        information_schema.columns
-                    WHERE
-                        table_name = %s
-                    """
-                    cursor.execute(columns_query, (table_name,))
+                    # Log the queries
+                    print(f"Fetching details for table: {table_name}")
+
+                    cursor.execute("""
+                        SELECT column_name, data_type
+                        FROM information_schema.columns
+                        WHERE table_name = %s
+                    """, (table_name,))
                     columns = cursor.fetchall()
+                    print("Columns fetched:", columns)
 
-                    # Fetch row count using sql.Identifier
-                    cursor.execute(
-                        sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name))
-                    )
-                    row_count = cursor.fetchone()["count"]
+                    cursor.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name)))
+                    row_count = cursor.fetchone()
+                    print("Row count fetched:", row_count)
 
-                    # Fetch sample data using sql.Identifier
-                    cursor.execute(
-                        sql.SQL("SELECT * FROM {} LIMIT 5").format(sql.Identifier(table_name))
-                    )
+                    cursor.execute(sql.SQL("SELECT * FROM {} LIMIT 5").format(sql.Identifier(table_name)))
                     sample_data = cursor.fetchall()
+                    print("Sample data fetched:", sample_data)
 
-                    table_details = {
+                    return jsonify({
                         "name": table_name,
                         "columns": [
-                            {
-                                "name": col["column_name"],
-                                "type": col["data_type"],
-                            }
+                            {"name": col["column_name"], "type": col["data_type"]}
                             for col in columns
                         ],
-                        "rowCount": row_count,
-                        "sampleData": sample_data
-                    }
-
-                return jsonify(table_details), 200
-
+                        "rowCount": row_count["count"] if row_count else 0,
+                        "sampleData": sample_data,
+                    }), 200
         except Exception as e:
+            print(f"Error in route: {str(e)}")
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
     # Accept a natural language query and execute it on the loaded database
