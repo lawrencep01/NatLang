@@ -18,11 +18,11 @@ jobs:
     steps:
       # Uses checkout to pull code from the repository
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Set up Python version to 3.9
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 

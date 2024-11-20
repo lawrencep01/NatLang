@@ -54,16 +54,20 @@ def fetch_table_list():
         return []
 
 
-# Extract table name from INSERT query
-def get_table_name(query, query_type):
-    pattern = ""
-    if query_type == "insert":
-        pattern = r"insert\s+into\s+(\w+)"
-    elif query_type == "delete":
-        pattern = r"delete\s+from\s+(\w+)"
+# Extract table name from a query
+def get_table_name(query):
+    # Combine all patterns for different types of SQL queries
+    pattern = (
+        r"insert\s+into\s+(\w+)|"  # Match "insert into <table>"
+        r"delete\s+from\s+(\w+)|"  # Match "delete from <table>"
+        r"update\s+(\w+)|"  # Match "update <table>"
+        r"from\s+(\w+)"  # Match "from <table>" (for select queries)
+    )
+
     match = re.search(pattern, query, re.IGNORECASE)
     if match:
-        return match.group(1)
+        # Return the first captured group that is not None
+        return next(group for group in match.groups() if group is not None)
     else:
         return ""
 

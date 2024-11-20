@@ -1,12 +1,17 @@
 from flask import request, jsonify
 from database import get_db_connection
 from natlang import convert_query
-from utils import fetch_table_list, fetch_table_schema, get_table_name, get_where_clause, get_new_rows
+from utils import (
+    fetch_table_list,
+    fetch_table_schema,
+    get_table_name,
+    get_where_clause,
+    get_new_rows,
+)
 
 
 # Setup routes for RESTful API
 def setup_routes(app):
-
     # Home route to ensure connection is up
     @app.route("/status", methods=["GET"])
     def home():
@@ -28,80 +33,27 @@ def setup_routes(app):
         if not natlang_query:
             return jsonify({"error": "No query provided"}), 400
 
-        schema_desc = fetch_table_schema()
-        if not schema_desc:
+        schema = fetch_table_schema()
+        if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
 
         try:
-            # Generate SQL commands using OpenAI
-            queries = convert_query(natlang_query, schema_desc)
-            if not queries:
-                return jsonify({"error": "Failed to generate SQL from the query"}), 500
-
-            queries = queries.split(";")
-            queries = [query.strip() for query in queries if query.strip()]
-
-            results = []
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
+                    queries = convert_query(natlang_query, schema)
+                    if not queries:
+                        return (
+                            jsonify({"error": "Failed to generate SQL from the query"}),
+                            500,
+                        )
+                    queries = queries.split(";")
+                    queries = [query.strip() for query in queries if query.strip()]
+
+                    results = []
                     for query in queries:
                         try:
-                            cursor.execute(query)
-
-                            # For SELECT queries, fetch results
-                            if query.lower().startswith("select"):
-                                result = cursor.fetchall()
-                                results.append({"Query": query, "Results": result})
-
-                            # For INSERT, execute query and return num rows affected and the info of the new row inserted
-                            elif query.lower().startswith("insert"):
-                                table_name = get_table_name(query, "insert")
-                                cursor.execute(f"SELECT * FROM {table_name}")
-                                pre_insertion = cursor.fetchall()
-
-                                # Execute the insert query
-                                cursor.execute(query)
-                                connection.commit()
-                                rows_affected = cursor.rowcount
-
-                                # Fetch data after insertion
-                                cursor.execute(f"SELECT * FROM {table_name}")
-                                post_insertion = cursor.fetchall()
-
-                                # Identify newly added rows
-                                new_rows = get_new_rows(pre_insertion, post_insertion)
-
-                                results.append(
-                                    {
-                                        "Query": query,
-                                        "Message": f"{rows_affected} rows affected",
-                                        "NewRows": new_rows,
-                                        "Action": "insert"
-                                    }
-                                )
-
-                            # For DELETE, execute query and return num rows affected and the info of the row(s) deleted
-                            elif query.lower().startswith("delete"):
-                                # Fetch data before deletion
-                                table_name = get_table_name(query, "delete")
-                                deleted_rows_query = f"SELECT * FROM {table_name} WHERE {get_where_clause(query)}"
-                                cursor.execute(deleted_rows_query)
-                                rows_to_delete = cursor.fetchall()
-
-                                # Execute the delete query
-                                cursor.execute(query)
-                                connection.commit()
-                                rows_affected = cursor.rowcount
-
-                                results.append(
-                                    {
-                                        "Query": query,
-                                        "Message": f"{rows_affected} rows affected",
-                                        "DeletedRows": rows_to_delete,
-                                        "Action": "delete"
-                                    }
-                                )
-
+                            result = execute_query(cursor, connection, query)
+                            results.append(result)
                         except Exception as sql_error:
                             connection.rollback()
                             return (
@@ -118,3 +70,68 @@ def setup_routes(app):
 
         except Exception as e:
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
+
+
+# Unified function to execute various types of queries
+def execute_query(cursor, connection, query):
+    query_lower = query.lower()
+
+    if query_lower.startswith("select"):
+        # Execute the select query and return results
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return {"Query": query, "Results": result}
+
+    elif query_lower.startswith("insert"):
+        # Execute the insert query and return results
+        table_name = get_table_name(query)
+
+        # Fetch rows before insertion
+        cursor.execute(f"SELECT * FROM {table_name}")
+        pre_insertion = cursor.fetchall()
+
+        # Execute insert query
+        cursor.execute(query)
+        connection.commit()
+        rows_affected = cursor.rowcount
+
+        # Fetch rows after insertion
+        cursor.execute(f"SELECT * FROM {table_name}")
+        post_insertion = cursor.fetchall()
+
+        # Identify newly inserted rows
+        new_rows = get_new_rows(pre_insertion, post_insertion)
+
+        return {
+            "Query": query,
+            "Message": f"{rows_affected} rows affected",
+            "NewRows": new_rows,
+            "Action": "insert",
+        }
+
+    elif query_lower.startswith("delete"):
+        # Execute the delete query and return results
+        table_name = get_table_name(query)
+        deleted_rows_query = (
+            f"SELECT * FROM {table_name} WHERE {get_where_clause(query)}"
+        )
+
+        # Fetch rows before deletion
+        cursor.execute(deleted_rows_query)
+        rows_to_delete = cursor.fetchall()
+
+        # Execute delete query
+        cursor.execute(query)
+        connection.commit()
+        rows_affected = cursor.rowcount
+
+        return {
+            "Query": query,
+            "Message": f"{rows_affected} rows affected",
+            "DeletedRows": rows_to_delete,
+            "Action": "delete",
+        }
+
+    else:
+        # Handle unsupported query types
+        raise ValueError(f"Unsupported query type for: {query}")

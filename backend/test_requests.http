@@ -6,5 +6,5 @@ POST http://127.0.0.1:5000/queries
 Content-Type: application/json
 
 {
-    "query": "find next available ID and insert the Beatles"
+    "query": "list all artists starting with a"
 }
