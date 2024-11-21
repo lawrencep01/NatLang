@@ -6,10 +6,11 @@ POST http://127.0.0.1:5000/queries
 Content-Type: application/json
 
 {
-    "query": "list all artists starting with a"
+    "query": "find all artists who have released more than 10 albums"
 }
 
 ### Test Table List
 GET http://127.0.0.1:5000/tables
+
 ### Test Table Details
 GET http://127.0.0.1:5000/table-details/album

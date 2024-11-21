@@ -6,7 +6,7 @@ from routes import setup_routes
 app = Flask(__name__)
 CORS(app)
 
-# Setup routes
+# Setup the API routes from routes.py
 setup_routes(app)
 if __name__ == "__main__":
     app.run(debug=True)

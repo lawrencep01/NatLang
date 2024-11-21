@@ -9,12 +9,14 @@ from utils import (
     get_table_name,
     get_where_clause,
     get_new_rows,
+    extract_relevant_tables,
+    fetch_table_details,
 )
 
 
-# Setup routes for RESTful API
+# Setup routes for RESTful API endpoints
 def setup_routes(app):
-    # Home route to ensure connection is up
+    # Status route to ensure connection to the database is up
     @app.route("/status", methods=["GET"])
     def home():
         return jsonify({"message": "Connected to PostgreSQL database"}), 200
@@ -30,37 +32,14 @@ def setup_routes(app):
     @app.route("/table-details/<table_name>", methods=["GET"])
     def get_table_details(table_name):
         try:
-            print("Calling get_db_connection...")  # Debugging
-            with get_db_connection() as connection:
-                with connection.cursor(cursor_factory=RealDictCursor) as cursor:
-                    # Log the queries
-                    print(f"Fetching details for table: {table_name}")
-
-                    cursor.execute("""
-                        SELECT column_name, data_type
-                        FROM information_schema.columns
-                        WHERE table_name = %s
-                    """, (table_name,))
-                    columns = cursor.fetchall()
-                    print("Columns fetched:", columns)
-
-                    cursor.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name)))
-                    row_count = cursor.fetchone()
-                    print("Row count fetched:", row_count)
-
-                    cursor.execute(sql.SQL("SELECT * FROM {} LIMIT 5").format(sql.Identifier(table_name)))
-                    sample_data = cursor.fetchall()
-                    print("Sample data fetched:", sample_data)
-
-                    return jsonify({
-                        "name": table_name,
-                        "columns": [
-                            {"name": col["column_name"], "type": col["data_type"]}
-                            for col in columns
-                        ],
-                        "rowCount": row_count["count"] if row_count else 0,
-                        "sampleData": sample_data,
-                    }), 200
+            columns, row_count, data = fetch_table_details(table_name)
+            print(fetch_table_details(table_name))
+            return jsonify({
+                "name": table_name,
+                "columns": columns,
+                "rowCount": row_count,
+                "data": data,
+            }), 200
         except Exception as e:
             print(f"Error in route: {str(e)}")
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
