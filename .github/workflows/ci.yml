@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - main
+      - test-ci
   pull_request:
     branches:
       - main
+      - test-ci
 
 jobs:
   test_backend:
@@ -33,18 +35,15 @@ jobs:
           pip install -r backend/requirements.txt
           pip install pytest pytest-mock
       
-      - name: Set OpenAI API Key
-        run: echo "Setting OpenAI API Key"
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      
       # Run Linting using flake8 to ensure code is formatted properly
       - name: Run Linting
         run: |
           pip install flake8
           flake8 backend/
 
-      # Placeholder Test Command
+      # Run unit tests
       - name: Run Unit Tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           pytest tests/

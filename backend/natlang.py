@@ -1,5 +1,5 @@
 from openai import OpenAI
-from .config import Config
+from config import Config
 
 OpenAI.api_key = Config.OPENAI_API_KEY
 openai_client = OpenAI(api_key=OpenAI.api_key)

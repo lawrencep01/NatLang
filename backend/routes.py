@@ -1,9 +1,9 @@
 from flask import request, jsonify
 from psycopg2 import sql
 from psycopg2.extras import RealDictCursor
-from .database import get_db_connection
-from .natlang import convert_query
-from .utils import (
+from database import get_db_connection
+from natlang import convert_query
+from utils import (
     fetch_table_list,
     fetch_table_schema,
     get_table_name,

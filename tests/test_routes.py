@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from backend.app import app
+from app import app
 
 
 # Fixture setting up a Flask test client yielded to the tests
@@ -73,7 +73,7 @@ def test_status(client):
 
 
 def test_get_tables(client, mocker):
-    mocker.patch('backend.routes.fetch_table_list', return_value=['users', 'orders', 'products'])
+    mocker.patch('routes.fetch_table_list', return_value=['users', 'orders', 'products'])
     response = client.get("/tables")
     assert response.status_code == 200
     assert response.get_json() == {"tables": ['users', 'orders', 'products']}
@@ -88,7 +88,7 @@ def test_get_table_details(client, mocker):
         "row_count": 42,
         "sample_data": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
     }
-    mocker.patch('backend.routes.get_db_connection', return_value=MockConnection(mock_data))
+    mocker.patch('routes.get_db_connection', return_value=MockConnection(mock_data))
     #print(mock.call_count)
     #print(mock.call_args_list)
     response = client.get("/table-details/users")
@@ -105,13 +105,13 @@ def test_get_table_details(client, mocker):
 
 
 def test_create_query(client, mocker):
-    mocker.patch('backend.routes.fetch_table_schema', return_value="users: id (integer), name (text)\n")
-    mocker.patch('backend.routes.convert_query', return_value="SELECT * FROM users;")
+    mocker.patch('routes.fetch_table_schema', return_value="users: id (integer), name (text)\n")
+    mocker.patch('routes.convert_query', return_value="SELECT * FROM users;")
 
     mock_data = {
         "sample_data": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
     }
-    mocker.patch('backend.routes.get_db_connection', return_value=MockConnection(mock_data))
+    mocker.patch('routes.get_db_connection', return_value=MockConnection(mock_data))
 
     response = client.post("/queries", json={"query": "Get all users"})
     assert response.status_code == 200
