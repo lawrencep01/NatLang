@@ -105,7 +105,7 @@ def test_get_table_details(client, mocker):
 
 
 def test_create_query(client, mocker):
-    mocker.patch('routes.fetch_table_schema', return_value="users: id (integer), name (text)\n")
+    mocker.patch('routes.fetch_db_schema', return_value="users: id (integer), name (text)\n")
     mocker.patch('routes.convert_query', return_value="SELECT * FROM users;")
 
     mock_data = {

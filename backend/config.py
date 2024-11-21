@@ -8,5 +8,5 @@ load_dotenv()
 class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     DATABASE_URL = os.getenv(
-        "DATABASE_URL", "postgresql://lawrencephan@localhost:5432/chinook"
+        "DATABASE_URL", "postgresql://lawrencephan@localhost:5432/nfl_management"
     )

@@ -6,11 +6,11 @@ POST http://127.0.0.1:5000/queries
 Content-Type: application/json
 
 {
-    "query": "find all artists who have released more than 10 albums"
+    "query": "run commands to show me the AFC teams and their coaches by division"
 }
 
 ### Test Table List
 GET http://127.0.0.1:5000/tables
 
 ### Test Table Details
-GET http://127.0.0.1:5000/table-details/album
+GET http://127.0.0.1:5000/table-details/player

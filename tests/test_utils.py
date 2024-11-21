@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from utils import (
-    fetch_table_schema,
+    fetch_db_schema,
     fetch_table_list,
     get_table_name,
     get_where_clause,
@@ -60,14 +60,54 @@ class MockConnection:
         pass
 
 
-# Test for fetch_table_schema
-def test_fetch_table_schema(mocker):
+# Test for fetch_db_schema
+def test_fetch_db_schema(mocker):
     mock_data = {
         "fetch_schema": [
-            {"table_name": "users", "column_name": "id", "data_type": "integer"},
-            {"table_name": "users", "column_name": "name", "data_type": "text"},
-            {"table_name": "orders", "column_name": "order_id", "data_type": "integer"},
-            {"table_name": "orders", "column_name": "amount", "data_type": "float"},
+            {
+                "table_name": "users",
+                "column_name": "id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": None,
+                "constraint_type": "PRIMARY KEY",
+                "key_column": "id",
+                "foreign_table": None,
+                "foreign_column": None,
+            },
+            {
+                "table_name": "users",
+                "column_name": "name",
+                "data_type": "text",
+                "is_nullable": "YES",
+                "column_default": None,
+                "constraint_type": None,
+                "key_column": None,
+                "foreign_table": None,
+                "foreign_column": None,
+            },
+            {
+                "table_name": "orders",
+                "column_name": "order_id",
+                "data_type": "integer",
+                "is_nullable": "NO",
+                "column_default": None,
+                "constraint_type": "PRIMARY KEY",
+                "key_column": "order_id",
+                "foreign_table": None,
+                "foreign_column": None,
+            },
+            {
+                "table_name": "orders",
+                "column_name": "amount",
+                "data_type": "float",
+                "is_nullable": "YES",
+                "column_default": None,
+                "constraint_type": None,
+                "key_column": None,
+                "foreign_table": None,
+                "foreign_column": None,
+            },
         ]
     }
 
@@ -75,13 +115,19 @@ def test_fetch_table_schema(mocker):
     mocker.patch("utils.get_db_connection", return_value=MockConnection(mock_data))
 
     # Call the function to test
-    schema = fetch_table_schema()
+    schema = fetch_db_schema()
 
     # Expected schema output
     expected_schema = (
-        "users: id (integer), name (text)\n"
-        "orders: order_id (integer), amount (float)\n"
+        "\nDatabase Schema:\n"
+        "users\n"
+        "  - id (integer) [Nullable: NO] [Default: None] [Primary Key]\n"
+        "  - name (text) [Nullable: YES] [Default: None]\n\n"
+        "orders\n"
+        "  - order_id (integer) [Nullable: NO] [Default: None] [Primary Key]\n"
+        "  - amount (float) [Nullable: YES] [Default: None]\n\n"
     )
+
     # Assertion
     assert schema == expected_schema
 

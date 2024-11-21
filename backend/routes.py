@@ -3,7 +3,7 @@ from database import get_db_connection
 from natlang import convert_query
 from utils import (
     fetch_table_list,
-    fetch_table_schema,
+    fetch_db_schema,
     get_table_name,
     get_where_clause,
     get_new_rows,
@@ -30,7 +30,6 @@ def setup_routes(app):
     def get_table_details(table_name):
         try:
             columns, row_count, data = fetch_table_details(table_name)
-            print(fetch_table_details(table_name))
             return (
                 jsonify(
                     {
@@ -54,73 +53,82 @@ def setup_routes(app):
         if not natlang_query:
             return jsonify({"error": "No query provided"}), 400
 
-        schema = fetch_table_schema()
+        schema = fetch_db_schema()
         if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
 
         try:
-            with get_db_connection() as connection:
-                with connection.cursor() as cursor:
-                    queries = convert_query(natlang_query, schema)
-                    if not queries:
+            with get_db_connection() as connection, connection.cursor() as cursor:
+                queries = convert_query(natlang_query, schema)
+                print(queries)
+                if not queries:
+                    return (
+                        jsonify(
+                            {
+                                "error": "Failed to generate SQL command(s) from the query"
+                            }
+                        ),
+                        500,
+                    )
+                queries = [q.strip() for q in queries.split(";") if q.strip()]
+
+                res, in_transaction = [], False
+                for query in queries:
+                    try:
+                        if query.lower() == "begin":
+                            cursor.execute(query)
+                            in_transaction = True
+                        elif query.lower() == "commit":
+                            if in_transaction:
+                                connection.commit()
+                                in_transaction = False
+                            else:
+                                raise ValueError(
+                                    "COMMIT issued without active transaction"
+                                )
+                        else:
+                            res.append(
+                                execute_query(cursor, connection, query, in_transaction)
+                            )
+                    except Exception as sql_error:
+                        if in_transaction:
+                            connection.rollback()
                         return (
-                            jsonify({"error": "Failed to generate SQL from the query"}),
+                            jsonify(
+                                {
+                                    "error": f"SQL Execution Error: {str(sql_error)}",
+                                    "query": query,
+                                }
+                            ),
                             500,
                         )
-                    queries = queries.split(";")
-                    queries = [query.strip() for query in queries if query.strip()]
 
-                    results = []
-                    for query in queries:
-                        try:
-                            result = execute_query(cursor, connection, query)
-                            results.append(result)
-                        except Exception as sql_error:
-                            connection.rollback()
-                            return (
-                                jsonify(
-                                    {
-                                        "error": f"SQL Execution Error: {str(sql_error)}",
-                                        "query": query,
-                                    }
-                                ),
-                                500,
-                            )
-
-            return jsonify({"results": results}), 200
+            return jsonify({"results": res}), 200
 
         except Exception as e:
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 
 # Unified function to execute various types of queries
-def execute_query(cursor, connection, query):
-    query_lower = query.lower()
+def execute_query(cursor, connection, query, in_transaction=False):
+    table_name = get_table_name(query)
 
-    if query_lower.startswith("select"):
-        # Execute the select query and return results
+    if query.lower().startswith("select"):
         cursor.execute(query)
-        result = cursor.fetchall()
-        return {"Query": query, "Results": result}
+        return {"Query": query, "Results": cursor.fetchall()}
 
-    elif query_lower.startswith("insert"):
-        # Execute the insert query and return results
-        table_name = get_table_name(query)
-
-        # Fetch rows before insertion
+    elif query.lower().startswith("insert"):
         cursor.execute(f"SELECT * FROM {table_name}")
         pre_insertion = cursor.fetchall()
 
-        # Execute insert query
         cursor.execute(query)
-        connection.commit()
+        if not in_transaction:
+            connection.commit()
         rows_affected = cursor.rowcount
 
-        # Fetch rows after insertion
         cursor.execute(f"SELECT * FROM {table_name}")
         post_insertion = cursor.fetchall()
 
-        # Identify newly inserted rows
         new_rows = get_new_rows(pre_insertion, post_insertion)
 
         return {
@@ -130,22 +138,15 @@ def execute_query(cursor, connection, query):
             "Action": "insert",
         }
 
-    elif query_lower.startswith("delete"):
-        # Execute the delete query and return results
+    elif query.lower().startswith("delete"):
         table_name = get_table_name(query)
-        deleted_rows_query = (
-            f"SELECT * FROM {table_name} WHERE {get_where_clause(query)}"
-        )
-
-        # Fetch rows before deletion
-        cursor.execute(deleted_rows_query)
+        deleted_rows = f"SELECT * FROM {table_name} WHERE {get_where_clause(query)}"
+        cursor.execute(deleted_rows)
         rows_to_delete = cursor.fetchall()
-
-        # Execute delete query
         cursor.execute(query)
-        connection.commit()
+        if not in_transaction:
+            connection.commit()
         rows_affected = cursor.rowcount
-
         return {
             "Query": query,
             "Message": f"{rows_affected} rows affected",
@@ -153,6 +154,6 @@ def execute_query(cursor, connection, query):
             "Action": "delete",
         }
 
+    # Handle unsupported query types
     else:
-        # Handle unsupported query types
         raise ValueError(f"Unsupported query type for: {query}")
