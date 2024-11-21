@@ -3,6 +3,7 @@ import React from "react";
 import Table from "./Table";
 
 const TableDetails = ({ table }) => {
+  console.log(table);
   return (
     <div>
     <h3>Table: {table.name}</h3>
@@ -14,9 +15,9 @@ const TableDetails = ({ table }) => {
         </li>
       ))}
     </ul>
-    <h4>Row Count: {table.rowCount}</h4>
-    <h4>Sample Data:</h4>
-    <Table data={table.sampleData} />
+    <h4>Number of Rows: {table.rowCount}</h4>
+    <h4>Data:</h4>
+    <Table data={table.data} />
   </div>
   );
 };

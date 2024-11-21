@@ -1,6 +1,4 @@
 from flask import request, jsonify
-from psycopg2 import sql
-from psycopg2.extras import RealDictCursor
 from database import get_db_connection
 from natlang import convert_query
 from utils import (
@@ -9,7 +7,6 @@ from utils import (
     get_table_name,
     get_where_clause,
     get_new_rows,
-    extract_relevant_tables,
     fetch_table_details,
 )
 
@@ -34,12 +31,17 @@ def setup_routes(app):
         try:
             columns, row_count, data = fetch_table_details(table_name)
             print(fetch_table_details(table_name))
-            return jsonify({
-                "name": table_name,
-                "columns": columns,
-                "rowCount": row_count,
-                "data": data,
-            }), 200
+            return (
+                jsonify(
+                    {
+                        "name": table_name,
+                        "columns": columns,
+                        "rowCount": row_count,
+                        "data": data,
+                    }
+                ),
+                200,
+            )
         except Exception as e:
             print(f"Error in route: {str(e)}")
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500

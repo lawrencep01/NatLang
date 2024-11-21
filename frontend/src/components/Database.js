@@ -25,6 +25,7 @@ const Database = () => {
     try {
       const response = await api.get(`/table-details/${tableName}`);
       setSelectedTable(response.data);
+      //console.log(response.data);
     } catch (error) {
       setError("Failed to fetch table details.");
     }

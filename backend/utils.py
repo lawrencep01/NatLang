@@ -2,7 +2,6 @@ from database import get_db_connection
 from collections import defaultdict
 import re
 from psycopg2 import sql
-from psycopg2.extras import RealDictCursor
 
 
 # Fetch table schema data from the database to be used as input for OpenAI's API
@@ -24,14 +23,16 @@ def fetch_table_schema():
                     table_name, ordinal_position;
                 """
                 cursor.execute(schema_query)
-                schema = defaultdict(list) # Store schema data in a dictionary
+                schema = defaultdict(list)  # Store schema data in a dictionary
                 for row in cursor.fetchall():
-                    table_name = row["table_name"] # Group columns by table name, set as key
-                    column_info = f"{row['column_name']} ({row['data_type']})" # Set column name an data type as value
+                    table_name = row[
+                        "table_name"
+                    ]  # Group columns by table name, set as key
+                    column_info = f"{row['column_name']} ({row['data_type']})"  # Set column name an data type as value
                     schema[table_name].append(column_info)
                 schema_desc = ""
-                 # Format schema data as a string for OpenAI API input
-                for table, columns in schema.items(): 
+                # Format schema data as a string for OpenAI API input
+                for table, columns in schema.items():
                     schema_desc += f"{table}: {', '.join(columns)}\n"
                 return schema_desc
     except Exception as e:
@@ -52,31 +53,46 @@ def fetch_table_list():
                 ORDER BY table_name;
                 """
                 cursor.execute(table_query)
-                tables = [row["table_name"] for row in cursor.fetchall()] # Store table names in a list
+                tables = [
+                    row["table_name"] for row in cursor.fetchall()
+                ]  # Store table names in a list
                 return tables
     except Exception as e:
         print(f"Error fetching table list: {e}")
         return []
 
+
 def fetch_table_details(table_name):
     try:
         with get_db_connection() as connection:
             with connection.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT column_name, data_type
                     FROM information_schema.columns
                     WHERE table_name = %s
-                """, (table_name,))
-                
+                """,
+                    (table_name,),
+                )
+
                 columns = cursor.fetchall()
 
-                cursor.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name)))
+                cursor.execute(
+                    sql.SQL("SELECT COUNT(*) FROM {}").format(
+                        sql.Identifier(table_name)
+                    )
+                )
                 row_count = cursor.fetchone()
 
-                cursor.execute(sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name)))
+                cursor.execute(
+                    sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
+                )
                 data = cursor.fetchall()
 
-                columns = [{"column_name": col["column_name"], "type": col["data_type"]} for col in columns]
+                columns = [
+                    {"name": col["column_name"], "type": col["data_type"]}
+                    for col in columns
+                ]
                 row_count = row_count["count"] if row_count else 0
                 data = [dict(row) for row in data]
 
@@ -84,7 +100,8 @@ def fetch_table_details(table_name):
     except Exception as e:
         print(f"Error fetching table details: {e}")
         return None, None, None
-    
+
+
 # Extract table name from a query using regex
 def get_table_name(query):
     pattern = (
@@ -118,11 +135,3 @@ def get_new_rows(pre, post):
     post_set = set(tuple(row.items()) for row in post)
     new_rows = [dict(row) for row in (post_set - pre_set)]
     return new_rows
-
-def extract_relevant_tables(queries, table_names):
-    relevant_tables = []
-    for table in table_names:
-        for query in queries:
-            if table.lower() in query.lower():
-                relevant_tables.append(table)
-    return relevant_tables

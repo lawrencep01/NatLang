@@ -128,8 +128,8 @@ def test_fetch_table_details(mocker):
 
     # Expected output
     expected_columns = [
-        {"column_name": "id", "type": "integer"},
-        {"column_name": "name", "type": "text"},
+        {"name": "id", "type": "integer"},
+        {"name": "name", "type": "text"},
     ]
     expected_row_count = 0
     expected_data = []
