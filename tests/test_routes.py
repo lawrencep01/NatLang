@@ -65,13 +65,13 @@ class MockConnection:
         pass
 
 
-
+# Tests status route
 def test_status(client):
     response = client.get("/status")
     assert response.status_code == 200
     assert response.get_json() == {"message": "Connected to PostgreSQL database"}
 
-
+# Tests get_tables route
 def test_get_tables(client, mocker):
     mocker.patch('routes.fetch_table_list', return_value=['users', 'orders', 'products'])
     response = client.get("/tables")
@@ -80,15 +80,15 @@ def test_get_tables(client, mocker):
 
 
 def test_get_table_details(client, mocker):
-    mock_data = {
-        "fetch_schema": [
-            {"column_name": "id", "data_type": "integer"},
-            {"column_name": "name", "data_type": "text"},
+    mock_data = (
+        [
+            {"name": "id", "type": "integer"},
+            {"name": "name", "type": "text"},
         ],
-        "row_count": 42,
-        "sample_data": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
-    }
-    mocker.patch('routes.get_db_connection', return_value=MockConnection(mock_data))
+        2,
+        [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+    )
+    mocker.patch('routes.fetch_table_details', return_value=mock_data)
     #print(mock.call_count)
     #print(mock.call_args_list)
     response = client.get("/table-details/users")
@@ -99,8 +99,8 @@ def test_get_table_details(client, mocker):
             {"name": "id", "type": "integer"},
             {"name": "name", "type": "text"},
         ],
-        "rowCount": 42,
-        "sampleData": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
+        "rowCount": 2,
+        "data": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
     }
 
 
