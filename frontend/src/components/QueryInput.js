@@ -1,3 +1,4 @@
+// Updated components/QueryInput.js
 import React, { useState } from "react";
 import api from "../services/api";
 import QueryResults from "./QueryResults";
@@ -20,20 +21,24 @@ const QueryInput = () => {
   };
 
   return (
-    <div>
-      <h3>Enter a Natural Language Query:</h3>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g., Show all records from users"
-          required
-        />
-        <button type="submit">Submit</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <QueryResults results={results} />
+    <div className="container">
+      <div className="query-container">
+        <h3>Enter a Natural Language Query:</h3>
+        <form className="query-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="e.g., Show all records from users"
+            required
+          />
+          <button type="submit">Submit</button>
+        </form>
+        {error && <p className="error-message">{error}</p>}
+      </div>
+      <div className="results-container">
+        <QueryResults results={results} />
+      </div>
     </div>
   );
 };

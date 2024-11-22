@@ -1,4 +1,4 @@
-// components/QueryResults.js
+// Updated components/QueryResults.js
 import React from "react";
 import Table from "./Table";
 
@@ -8,7 +8,7 @@ const QueryResults = ({ results }) => {
   }
 
   return (
-    <div>
+    <div className="results-container">
       <h4>Results:</h4>
       {results.map((result, index) => (
         <div key={index}>
