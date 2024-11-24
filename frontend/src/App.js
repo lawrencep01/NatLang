@@ -8,7 +8,7 @@ import QueryInput from "./components/QueryInput";
 const App = () => {
   return (
     <Router>
-      <div className="font-sans">
+      <div className="font-sans bg-gray-50">
         <NavBar />
         <div className="container mx-auto px-3">
           <Routes>

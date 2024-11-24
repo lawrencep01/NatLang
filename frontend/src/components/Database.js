@@ -32,9 +32,10 @@ const Database = () => {
       setError("Failed to fetch table details.");
     }
   };
+
   if (error) {
     return (
-      <div className="p-4 bg-red-100 text-red-700 rounded-md">
+      <div>
         <h3>{error}</h3>
       </div>
     );
@@ -48,10 +49,10 @@ const Database = () => {
           <li
             key={index}
             onClick={() => handleTableClick(table)}
-            className="cursor-pointer bg-white border border-gray-300 rounded-sm p-4 shadow hover:bg-blue-50 transition flex flex-row items-center"
+            className="cursor-pointer bg-white border border-gray-300 rounded-sm p-4 shadow hover:bg-blue-50 transition flex items-center"
           >
             <FaTable className="mr-2 text-xl text-black" />
-            <span className="text-m font-medium tracking-tight">{table}</span>
+            <span className="text-base font-medium tracking-tight">{table}</span>
           </li>
         ))}
       </ul>
