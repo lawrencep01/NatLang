@@ -8,7 +8,7 @@ const QueryResults = ({ results }) => {
   }
 
   return (
-    <div className="results-container">
+    <div>
       <h4>Results:</h4>
       {results.map((result, index) => (
         <div key={index}>
@@ -18,17 +18,17 @@ const QueryResults = ({ results }) => {
           result.NewRows.length > 0 ? (
             <div>
               <p>{result.Message}</p>
-              <Table data={result.NewRows} highlight="insert" />
+              <Table tableName="Inserted Elements" data={result.NewRows} highlight="insert" />
             </div>
           ) : result.Action === "delete" &&
             Array.isArray(result.DeletedRows) &&
             result.DeletedRows.length > 0 ? (
             <div>
               <p>{result.Message}</p>
-              <Table data={result.DeletedRows} highlight="delete" />
+              <Table tableName="Deleted Elements" data={result.DeletedRows} highlight="delete" />
             </div>
           ) : Array.isArray(result.Results) && result.Results.length > 0 ? (
-            <Table data={result.Results} />
+            <Table tableName="Results" data={result.Results} />
           ) : (
             <p>{result.Message || "No data returned by this query"}</p>
           )}

@@ -6,7 +6,7 @@ const NavBar = () => {
   // Function to determine the class based on active state
   const getLinkClass = ({ isActive }) =>
     isActive
-      ? "text-black text-sm font-semibold px-3 py-3"
+      ? "text-black text-sm font-black px-3 py-3"
       : "text-black text-sm font-medium px-3 py-3 transition-all duration-200 hover:font-black";
 
   return (
