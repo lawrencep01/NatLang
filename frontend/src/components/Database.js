@@ -1,9 +1,9 @@
 // components/Database.js
 import React, { useEffect, useState, useContext } from "react";
 import api from "../services/api";
-import TableDetails from "./TableDetails";
-import { FaTable } from "react-icons/fa6";
+import { FaTable, FaSpinner, FaCircle } from "react-icons/fa6";
 import { ConnectionContext } from "../contexts/ConnectionContext";
+import TableDetails from "./TableDetails";
 
 /**
  * Database Component
@@ -17,6 +17,7 @@ const Database = () => {
   const [selectedTable, setSelectedTable] = useState(null); // State to hold the details of the selected table
   const [error, setError] = useState(null); // State to handle error messages
   const [databaseName, setDatabaseName] = useState(""); // State to hold the name of the database
+  const [isLoading, setIsLoading] = useState(false); // State to handle whether or not the data is loading
 
   /**
    * Fetches the list of tables from the API based on the selected connection ID.
@@ -26,10 +27,12 @@ const Database = () => {
     if (connectionId) {
       const fetchTables = async () => {
         try {
-          const response = await api.get(`/tables?connection_id=${connectionId}`);
+          const response = await api.get(
+            `/tables?connection_id=${connectionId}`
+          );
           setTables(response.data.tables);
           setDatabaseName(response.data.databaseName);
-        } catch {
+        } catch (err) {
           setError("Failed to fetch table list.");
         }
       };
@@ -43,37 +46,64 @@ const Database = () => {
    * @param {string} tableName - The name of the table to fetch details for, accessed from databaseName state.
    */
   const handleTableClick = async (tableName) => {
+    setIsLoading(true);
+    setSelectedTable(null); // Unrender the previous table component
     try {
-      const response = await api.get(`/table-details/${tableName}?connection_id=${connectionId}`);
+      const response = await api.get(
+        `/table-details/${tableName}?connection_id=${connectionId}`
+      );
       setSelectedTable(response.data);
-    } catch {
+      setIsLoading(false);
+    } catch (err) {
       setError("Failed to fetch table details.");
+      setIsLoading(false);
     }
   };
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
 
   return (
     <div className="min-h-screen py-8">
-      <h2 className="text-xl font-bold mb-4">Database: {databaseName}</h2>
-      
+      <div className="mx-auto mb-4 flex w-full justify-center items-center">
+        <h1 className="text-lg font-semibold tracking-tight">{databaseName}</h1>
+      </div>
       {/* Tables List */}
       <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {tables.map((table) => (
+        {tables.map((table, index) => (
           <li
-            key={table.name}
+            key={index}
             className="flex items-center p-4 bg-white border rounded shadow hover:bg-gray-100 cursor-pointer"
-            onClick={() => handleTableClick(table.name)}
+            onClick={() => handleTableClick(table)}
           >
-            <FaTable className="text-2xl text-blue-500 mr-3" />
-            <span className="text-lg">{table.name}</span>
+            <FaTable className="text-2xl text-gray-800 mr-3" />
+            <span className="font-sm tracking-tight text-base font-sans">
+              {table}
+            </span>
+
+            {/* Selection Status Indicator */}
+            <div className="flex items-center ml-auto mr-2 flex-shrink-0 text-base">
+              {selectedTable && selectedTable.name === table ? (
+                <FaCircle className="text-green-600 text-xs ml-2 animate-glow" />
+              ) : (
+                <FaCircle className="text-gray-500 text-xs ml-2" />
+              )}
+            </div>
           </li>
         ))}
       </ul>
-
-      {/* Table Details */}
-      {selectedTable && <TableDetails table={selectedTable} />}
+      {isLoading ? (
+        <div className="flex justify-center items-center mt-8">
+          <FaSpinner className="text-4xl text-gray-600 animate-spin" />
+        </div>
+      ) : (
+        selectedTable && (
+          <div className="w-full mt-8">
+            <TableDetails table={selectedTable} />
+          </div>
+        )
+      )}
     </div>
   );
 };

@@ -11,14 +11,14 @@ const App = () => {
   return (
     <ConnectionProvider>
     <Router>
-      <div className="font-sans bg-gray-50">
+      <div className="font-sans bg-white">
         <NavBar />
         <div className="container mx-auto px-3">
           <Routes>
             <Route path="/" element={<h2 className="mt-4">Welcome to the Database Query Application</h2>} />
+            <Route path="/connections" element={<Connections />} />
             <Route path="/database" element={<Database />} />
             <Route path="/queries" element={<QueryInput />} />
-            <Route path="/connections" element={<Connections />} />
           </Routes>
         </div>
       </div>

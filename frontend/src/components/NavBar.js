@@ -6,17 +6,21 @@ const NavBar = () => {
   // Function to determine the class based on active state
   const getLinkClass = ({ isActive }) =>
     isActive
-      ? "text-black text-sm font-black px-3 py-3"
-      : "text-black text-sm font-medium px-3 py-3 transition-all duration-200 hover:font-black";
+      ? "text-black text-sm font-bold px-3 py-3"
+      : "text-black text-sm font-light px-3 py-3 transition-all duration-200 hover:font-black";
 
   return (
-    <nav className="bg-gray-100 p-3">
-      <div className="container mx-auto flex justify-between items-center px-3">
-        <div className="text-black text-lg font-semibold">Natural Language SQL</div>
+    <nav className="bg-offwhite p-3">
+      <div className="container mx-auto flex justify-center items-center px-3">
         <ul className="flex space-x-8">
           <li>
             <NavLink to="/" className={getLinkClass}>
               Home
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/connections" className={getLinkClass}>
+              Connections
             </NavLink>
           </li>
           <li>
@@ -30,8 +34,8 @@ const NavBar = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/connections" className={getLinkClass}>
-              Connections
+            <NavLink to="/" className={getLinkClass}>
+              Data
             </NavLink>
           </li>
         </ul>

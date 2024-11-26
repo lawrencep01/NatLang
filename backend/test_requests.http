@@ -46,12 +46,11 @@ DELETE http://127.0.0.1:5000/connections/1
 GET http://127.0.0.1:5000/status
 
 ### Test Natural Language Query
-POST http://127.0.0.1:5000/queries?connection_id=1
+POST http://127.0.0.1:5000/queries?connection_id=2
 Content-Type: application/json
 
 {
-    "query": "run commands to show me the AFC teams and their coaches by division",
-    "connection_id": 1
+    "query": "list all artists"
 }
 
 ### Test Table List
