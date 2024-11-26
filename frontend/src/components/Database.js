@@ -1,61 +1,78 @@
 // components/Database.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import api from "../services/api";
 import TableDetails from "./TableDetails";
-import { FaTable } from "react-icons/fa";
+import { FaTable } from "react-icons/fa6";
+import { ConnectionContext } from "../contexts/ConnectionContext";
 
-// State management for list of tables, user selected table, and error message
+/**
+ * Database Component
+ *
+ * Displays a list of tables from the selected database connection.
+ * Allows users to view details of each table.
+ */
 const Database = () => {
-  const [tables, setTables] = useState([]);
-  const [selectedTable, setSelectedTable] = useState(null);
-  const [error, setError] = useState(null);
+  const { connectionId } = useContext(ConnectionContext); // Context to access the currently selected connection ID
+  const [tables, setTables] = useState([]); // State to hold the list of tables for the selected database
+  const [selectedTable, setSelectedTable] = useState(null); // State to hold the details of the selected table
+  const [error, setError] = useState(null); // State to handle error messages
+  const [databaseName, setDatabaseName] = useState(""); // State to hold the name of the database
 
-  // Send a GET request to the API to fetch the list of tables
+  /**
+   * Fetches the list of tables from the API based on the selected connection ID.
+   * Updates the tables and databaseName states or sets an error if the request fails.
+   */
   useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        const response = await api.get("/tables");
-        setTables(response.data.tables);
-      } catch (error) {
-        setError("Failed to fetch table list.");
-      }
-    };
-    fetchTables();
-  }, []);
+    if (connectionId) {
+      const fetchTables = async () => {
+        try {
+          const response = await api.get(`/tables?connection_id=${connectionId}`);
+          setTables(response.data.tables);
+          setDatabaseName(response.data.databaseName);
+        } catch {
+          setError("Failed to fetch table list.");
+        }
+      };
+      fetchTables();
+    }
+  }, [connectionId]);
 
-  // On table click event, send a GET request to the API to fetch the table details
+  /**
+   * Handles the selection of a table by fetching its details from the API.
+   *
+   * @param {string} tableName - The name of the table to fetch details for, accessed from databaseName state.
+   */
   const handleTableClick = async (tableName) => {
     try {
-      const response = await api.get(`/table-details/${tableName}`);
+      const response = await api.get(`/table-details/${tableName}?connection_id=${connectionId}`);
       setSelectedTable(response.data);
-    } catch (error) {
+    } catch {
       setError("Failed to fetch table details.");
     }
   };
-
   if (error) {
-    return (
-      <div>
-        <h3>{error}</h3>
-      </div>
-    );
+    return <div className="text-red-500">{error}</div>;
   }
 
   return (
-    <div className="py-6 min-h-screen">
-      <h3 className="text-xl font-semibold mb-4">Database Tables</h3>
-      <ul className="grid grid-cols-5 gap-4">
-        {tables.map((table, index) => (
+    <div className="min-h-screen py-8">
+      <h2 className="text-xl font-bold mb-4">Database: {databaseName}</h2>
+      
+      {/* Tables List */}
+      <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {tables.map((table) => (
           <li
-            key={index}
-            onClick={() => handleTableClick(table)}
-            className="cursor-pointer bg-white border border-gray-300 rounded-sm p-4 shadow hover:bg-blue-50 transition flex items-center"
+            key={table.name}
+            className="flex items-center p-4 bg-white border rounded shadow hover:bg-gray-100 cursor-pointer"
+            onClick={() => handleTableClick(table.name)}
           >
-            <FaTable className="mr-2 text-xl text-black" />
-            <span className="text-base font-medium tracking-tight">{table}</span>
+            <FaTable className="text-2xl text-blue-500 mr-3" />
+            <span className="text-lg">{table.name}</span>
           </li>
         ))}
       </ul>
+
+      {/* Table Details */}
       {selectedTable && <TableDetails table={selectedTable} />}
     </div>
   );

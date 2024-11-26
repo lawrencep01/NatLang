@@ -1,6 +1,6 @@
 // Updated components/QueryResults.js
 import React from "react";
-import Table from "./Table";
+import Table from "../shared/Table";
 
 const QueryResults = ({ results }) => {
   if (!results.length) {

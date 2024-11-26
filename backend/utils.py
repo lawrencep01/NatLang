@@ -5,9 +5,9 @@ from psycopg2 import sql
 
 
 # Fetch table schema data from the database to be used as input for OpenAI's API
-def fetch_db_schema():
+def fetch_db_schema(connection_id):
     try:
-        with get_db_connection() as connection, connection.cursor() as cursor:
+        with get_db_connection(connection_id) as connection, connection.cursor() as cursor:
             # Query to fetch table schema information
             schema_query = """
                 SELECT
@@ -72,9 +72,9 @@ def fetch_db_schema():
 
 
 # Fetch a list of all tables in the database
-def fetch_table_list():
+def fetch_table_list(connection_id):
     try:
-        with get_db_connection() as connection:
+        with get_db_connection(connection_id) as connection:
             with connection.cursor() as cursor:
                 # Query to fetch all tables in the database
                 table_query = """
@@ -87,15 +87,20 @@ def fetch_table_list():
                 tables = [
                     row["table_name"] for row in cursor.fetchall()
                 ]  # Store table names in a list
-                return tables
+
+                # Query to fetch the database name
+                cursor.execute("SELECT current_database()")
+                database_name = cursor.fetchone()["current_database"]
+
+                return tables, database_name
     except Exception as e:
         print(f"Error fetching table list: {e}")
         return []
 
 
-def fetch_table_details(table_name):
+def fetch_table_details(connection_id, table_name):
     try:
-        with get_db_connection() as connection:
+        with get_db_connection(connection_id) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """

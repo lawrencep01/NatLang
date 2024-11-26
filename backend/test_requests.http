@@ -1,16 +1,61 @@
-### Test Home Route
-GET http://127.0.0.1:5000/
-
-### Test Natural Language Query
-POST http://127.0.0.1:5000/queries
+### Create a new database connection
+POST http://127.0.0.1:5000/connections
 Content-Type: application/json
 
 {
-    "query": "run commands to show me the AFC teams and their coaches by division"
+    "name": "Test Connection",
+    "host": "localhost",
+    "port": 5432,
+    "username": "lawrencephan",
+    "password": "",
+    "database": "nfl_management"
+}
+
+### Create another database connection
+POST http://127.0.0.1:5000/connections
+Content-Type: application/json
+
+{
+    "name": "Music DB Connection",
+    "host": "localhost",
+    "port": 5432,
+    "username": "lawrencephan",
+    "password": "",
+    "database": "chinook"
+}
+### Get all database connections
+GET http://127.0.0.1:5000/connections
+
+### Update a database connection
+PUT http://127.0.0.1:5000/connections/1
+Content-Type: application/json
+
+{
+    "name": "NFL DB Connection",
+    "host": "localhost",
+    "port": 5432,
+    "username": "lawrencephan",
+    "password": "",
+    "database": "nfl_management"
+}
+
+### Delete a database connection
+DELETE http://127.0.0.1:5000/connections/1
+
+### Status
+GET http://127.0.0.1:5000/status
+
+### Test Natural Language Query
+POST http://127.0.0.1:5000/queries?connection_id=1
+Content-Type: application/json
+
+{
+    "query": "run commands to show me the AFC teams and their coaches by division",
+    "connection_id": 1
 }
 
 ### Test Table List
-GET http://127.0.0.1:5000/tables
+GET http://127.0.0.1:5000/tables?connection_id=1
 
 ### Test Table Details
-GET http://127.0.0.1:5000/table-details/player
+GET http://127.0.0.1:5000/table-details/player?connection_id=1

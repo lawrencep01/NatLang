@@ -1,6 +1,6 @@
 // components/TableDetails.js
 import React from "react";
-import Table from "./Table";
+import Table from "../shared/Table";
 
 // With an input of the table-details API respone, render the Table component
 const TableDetails = ({ table }) => {

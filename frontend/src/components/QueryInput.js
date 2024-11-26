@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import api from "../services/api";
 import QueryResults from "./QueryResults";
+import { ConnectionContext } from "../contexts/ConnectionContext";
 import { FaCircleQuestion } from "react-icons/fa6";
 import { HiPaperAirplane } from "react-icons/hi2";
 
@@ -9,6 +10,7 @@ const QueryInput = () => {
   const textareaRef = useRef(null);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
+  const { connectionId } = useContext(ConnectionContext);
 
   // Adjust textarea height on content change
   const handleInputChange = (e) => {
@@ -20,8 +22,12 @@ const QueryInput = () => {
   // On form submit event, send a POST request to the API to execute the query
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!connectionId) {
+      setError("No connection selected.");
+      return;
+    }
     try {
-      const response = await api.post("/queries", { query });
+      const response = await api.post(`/queries?connection_id=${connectionId}`, query);
       setResults(response.data.results);
       setError(null);
       setQuery(""); // Clear the input after submitting

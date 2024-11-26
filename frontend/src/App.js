@@ -4,9 +4,12 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import Database from "./components/Database";
 import QueryInput from "./components/QueryInput";
+import Connections from "./components/Connections";
+import { ConnectionProvider } from "./contexts/ConnectionContext";
 
 const App = () => {
   return (
+    <ConnectionProvider>
     <Router>
       <div className="font-sans bg-gray-50">
         <NavBar />
@@ -15,10 +18,12 @@ const App = () => {
             <Route path="/" element={<h2 className="mt-4">Welcome to the Database Query Application</h2>} />
             <Route path="/database" element={<Database />} />
             <Route path="/queries" element={<QueryInput />} />
+            <Route path="/connections" element={<Connections />} />
           </Routes>
         </div>
       </div>
     </Router>
+    </ConnectionProvider>
   );
 };
 

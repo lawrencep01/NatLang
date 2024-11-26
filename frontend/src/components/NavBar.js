@@ -29,6 +29,11 @@ const NavBar = () => {
               Queries
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/connections" className={getLinkClass}>
+              Connections
+            </NavLink>
+          </li>
         </ul>
       </div>
     </nav>
