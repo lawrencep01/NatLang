@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from database import get_db_connection
-from natlang import convert_query
+from natlang import convert_query, analyze_query
 from models import DatabaseConnection, SessionLocal
 from utils import (
     fetch_table_list,
@@ -135,14 +135,36 @@ def setup_routes(app):
             print(f"Error in route: {str(e)}")
             return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
+    # Accept a natural language query and analyze it to return table name and description
+    @app.route("/analyze", methods=["POST"])
+    def analyze_natural_language():
+        data = request.get_json()
+        natlang_query = data.get("query", "")
+        if not natlang_query:
+            return jsonify({"error": "No query provided"}), 400
+        connection_id = request.args.get("connection_id")
+        if not connection_id:
+            return jsonify({"error": "connection_id is required"}), 400
+        schema = fetch_db_schema(connection_id)
+        if not schema:
+            return jsonify({"error": "Failed to fetch table schema"}), 500
+        try:
+            response = analyze_query(natlang_query, schema)
+            table_name, table_description = response.split("|")
+            return jsonify({"name": table_name, "description": table_description}), 200
+        except ValueError:
+            return jsonify({"error": "Invalid response format from analyze_query"}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     # Accept a natural language query and execute it on the loaded database
     @app.route("/queries", methods=["POST"])
     def create_query():
         data = request.get_json()
         natlang_query = data.get("query", "")
-        connection_id = request.args.get("connection_id")
         if not natlang_query:
             return jsonify({"error": "No query provided"}), 400
+        connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
         schema = fetch_db_schema(connection_id)

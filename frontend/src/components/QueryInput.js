@@ -12,6 +12,7 @@ const QueryInput = () => {
   const [query, setQuery] = useState("");
   const textareaRef = useRef(null);
   const [results, setResults] = useState([]);
+  const [tableInfo, setTableInfo] = useState([]);
   const [error, setError] = useState(null);
   const [databaseName, setDatabaseName] = useState("");
   const { connectionId } = useContext(ConnectionContext);
@@ -54,6 +55,16 @@ const QueryInput = () => {
         }
       );
       setResults(response.data.results);
+      const info = await api.post(
+        `/analyze?connection_id=${connectionId}`,
+        {query},
+        {
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
+      )
+      setTableInfo(info.data);
       setError(null);
       setQuery(""); // Clear the input after submitting
       textareaRef.current.style.height = "auto"; // Reset textarea height
@@ -66,6 +77,7 @@ const QueryInput = () => {
   // Clear results and refresh the page
   const handleClearResults = () => {
     setResults([]);
+    setTableInfo([]);
     setError(null);
     setQuery("");
     textareaRef.current.style.height = "auto"; // Reset textarea height
@@ -128,7 +140,7 @@ const QueryInput = () => {
       {/* Results */}
       <div className="flex-grow flex items-center justify-center pt-0 p-4 rounded-md border-t border-gray-300 bg-white mb-24">
         {results.length > 0 ? (
-          <QueryResults results={results} />
+          <QueryResults results={results} tableInfo={tableInfo} />
         ) : (
           <p className="text-gray-500 text-center">Enter Queries</p>
         )}

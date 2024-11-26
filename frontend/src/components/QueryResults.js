@@ -2,7 +2,7 @@
 import React from "react";
 import Table from "../shared/Table";
 
-const QueryResults = ({ results }) => {
+const QueryResults = ({ results, tableInfo }) => {
   if (!results.length) {
     return null;
   }
@@ -24,7 +24,7 @@ const QueryResults = ({ results }) => {
               <Table tableName="Deleted Elements" description={result.Message} data={result.DeletedRows} highlight="delete" />
             </div>
           ) : Array.isArray(result.Results) && result.Results.length > 0 ? (
-            <Table tableName="READ" description={result.Query} data={result.Results} />
+            <Table tableName={tableInfo.name} description={tableInfo.description} data={result.Results} />
           ) : (
             <p>{result.Message || "No data returned by this query"}</p>
           )}
