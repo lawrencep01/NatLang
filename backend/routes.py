@@ -10,6 +10,7 @@ from utils import (
     get_new_rows,
     fetch_table_details,
 )
+import uuid
 
 
 # Setup routes for RESTful API endpoints
@@ -203,9 +204,9 @@ def setup_routes(app):
                                     "COMMIT issued without active transaction"
                                 )
                         else:
-                            res.append(
-                                execute_query(cursor, connection, query, in_transaction)
-                            )
+                            query_result = execute_query(cursor, connection, query, in_transaction)
+                            query_result["id"] = str(uuid.uuid4())
+                            res.append(query_result)
                     except Exception as sql_error:
                         if in_transaction:
                             connection.rollback()

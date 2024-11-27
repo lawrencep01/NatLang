@@ -4,10 +4,10 @@ import { BiFilter } from "react-icons/bi";
 import { IoCaretBack, IoCaretForward } from "react-icons/io5";
 
 // Table component rendering a table with pagination
-const Table = ({ tableName, description = "No description available", data, highlight }) => {
+const Table = ({ tableName, description = "No description available", data, highlight, className }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   if (!data || data.length === 0) {
     return <p className="text-gray-600">No data available</p>;
@@ -85,8 +85,8 @@ const Table = ({ tableName, description = "No description available", data, high
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex items-center justify-between pt-4 mb-2">
+    <div className={`overflow-x-auto ${className}`}>
+      <div className="flex items-center justify-between mb-2">
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold tracking-tight">{tableName}</h2>
           <p className="text-sm text-gray-400">{description}</p>
@@ -105,6 +105,7 @@ const Table = ({ tableName, description = "No description available", data, high
           <BiFilter className="h-7 w-7" />
         </button>
       </div>
+      <div className="overflow-x-auto">
       <table className="w-full table-auto bg-white border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
@@ -137,6 +138,7 @@ const Table = ({ tableName, description = "No description available", data, high
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* Pagination Controls */}
       <div className="flex justify-between items-center mt-4">

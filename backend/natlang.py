@@ -40,10 +40,10 @@ def analyze_query(prompt, schema):
             {
                 "role": "system",
                 "content": (
-                    f"You are an expert at analyzing natural language requests for SQL."
+                    f"You are an expert at analyzing SQL commands."
                     f"Provided is the table schema for the database you are working with:\n{schema}\n"
-                    f"Analyze the request and provide a suitable table name and description for the data that would be returned by the request."
-                    f"The table name should be short, formatted like a book title with spaces between words, and tailored around the request itself."
+                    f"Analyze the command and provide a suitable table name and description for the data that would be returned."
+                    f"The table name should be short, formatted like a book title with spaces between words, and tailored around the command itself."
                     f"The description should be concise and informative, while remaining small enough to fit in a single line."
                     f"You should only provide the table name and table description, no additional comments or explanations."
                     f"The output should be formatted as follows 'table_name|table_description'."

@@ -104,4 +104,11 @@ def test_create_query(client):
         mock_get_db_connection.return_value.__enter__.return_value = mock_connection
         response = client.post("/queries?connection_id=1", json=data)
         assert response.status_code == 200
-        assert response.json == {"results": [{"Query": "SELECT * FROM table1", "Results": [{"column1": "value1", "column2": "value2"}]}]}
+        results = response.json.get("results", [])
+        assert len(results) == 1
+        result = results[0]
+        assert "Query" in result
+        assert "Results" in result
+        assert "id" in result  # Check for the presence of the id field
+        assert result["Query"] == "SELECT * FROM table1"
+        assert result["Results"] == [{"column1": "value1", "column2": "value2"}]

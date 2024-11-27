@@ -15,7 +15,7 @@ const App = () => {
         <NavBar />
         <div className="container mx-auto px-3">
           <Routes>
-            <Route path="/" element={<h2 className="mt-4">Welcome to the Database Query Application</h2>} />
+            <Route path="/" element={<h2 className="mt-4">To Do</h2>} />
             <Route path="/connections" element={<Connections />} />
             <Route path="/database" element={<Database />} />
             <Route path="/queries" element={<QueryInput />} />

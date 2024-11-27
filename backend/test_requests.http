@@ -60,9 +60,9 @@ GET http://127.0.0.1:5000/tables?connection_id=1
 GET http://127.0.0.1:5000/table-details/player?connection_id=1
 
 ### Test Analyze Query
-POST http://127.0.0.1:5000/analyze?connection_id=1
+POST http://127.0.0.1:5000/analyze?connection_id=2
 Content-Type: application/json
 
 {
-    "query": "Find all AFC north teams, their coaches, and their stadiums"
+    "query": "SELECT * FROM artist WHERE name LIKE 'A%'"
 }

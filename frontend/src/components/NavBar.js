@@ -14,11 +14,6 @@ const NavBar = () => {
       <div className="container mx-auto flex justify-center items-center px-3">
         <ul className="flex space-x-8">
           <li>
-            <NavLink to="/" className={getLinkClass}>
-              Home
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/connections" className={getLinkClass}>
               Connections
             </NavLink>
@@ -35,7 +30,7 @@ const NavBar = () => {
           </li>
           <li>
             <NavLink to="/" className={getLinkClass}>
-              Data
+              Usage
             </NavLink>
           </li>
         </ul>

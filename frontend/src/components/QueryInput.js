@@ -2,20 +2,20 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import api from "../services/api";
 import QueryResults from "./QueryResults";
 import { ConnectionContext } from "../contexts/ConnectionContext";
-import { FaCircleQuestion } from "react-icons/fa6";
-import { FaHistory } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa6";
+import { FaHistory, FaInfoCircle } from "react-icons/fa";
 import { HiPaperAirplane } from "react-icons/hi2";
 import { BsDatabaseFillCheck, BsDatabaseFillX } from "react-icons/bs";
 import { PiBroomFill } from "react-icons/pi";
 
 const QueryInput = () => {
   const [query, setQuery] = useState("");
-  const textareaRef = useRef(null);
+  const inputRef = useRef(null);
   const [results, setResults] = useState([]);
-  const [tableInfo, setTableInfo] = useState([]);
   const [error, setError] = useState(null);
   const [databaseName, setDatabaseName] = useState("");
   const { connectionId } = useContext(ConnectionContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchDatabaseName = async () => {
@@ -30,66 +30,55 @@ const QueryInput = () => {
     fetchDatabaseName();
   }, [connectionId]);
 
-  // Adjust textarea height on content change
   const handleInputChange = (e) => {
     setQuery(e.target.value);
-    textareaRef.current.style.height = "auto";
-    textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+    inputRef.current.style.height = "auto";
+    inputRef.current.style.height = inputRef.current.scrollHeight + "px";
   };
 
-  // On form submit event, send a POST request to the API to execute the query
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     if (!connectionId) {
       setError("No connection selected.");
+      setIsLoading(false);
       return;
     }
     try {
       const response = await api.post(
         `/queries?connection_id=${connectionId}`,
-        { query }, // Send the query as JSON
+        { query },
         {
           headers: {
-            "Content-Type": "application/json", // Set the correct content type
+            "Content-Type": "application/json",
           },
         }
       );
       setResults(response.data.results);
-      const info = await api.post(
-        `/analyze?connection_id=${connectionId}`,
-        {query},
-        {
-          headers: {
-            "Content-Type": "application/json",
-          }
-        }
-      )
-      setTableInfo(info.data);
+      setIsLoading(false);
       setError(null);
-      setQuery(""); // Clear the input after submitting
-      textareaRef.current.style.height = "auto"; // Reset textarea height
+      setQuery("");
+      inputRef.current.value = "";
+      inputRef.current.style.height = "auto";
     } catch (err) {
       setError(err.response?.data?.error || "Something went wrong.");
       setResults([]);
+      setIsLoading(false);
     }
   };
 
-  // Clear results and refresh the page
   const handleClearResults = () => {
     setResults([]);
-    setTableInfo([]);
     setError(null);
     setQuery("");
-    textareaRef.current.style.height = "auto"; // Reset textarea height
+    inputRef.current.value = "";
+    inputRef.current.style.height = "auto";
   };
 
   return (
     <div className="flex flex-col min-h-screen py-8">
-      {/* Page header */}
-      <div className="mx-auto mb-6 flex w-full justify-between items-center">
-        {/* Database Name and Status */}
+      <div className="mx-auto pb-4 mb-2 flex w-full justify-between items-center border-b border-gray-300">
         <div className="mb-auto flex items-center">
-          {/* Database Icon */}
           <div className="flex items-center justify-center mr-2">
             {databaseName ? (
               <BsDatabaseFillCheck className="text-4xl text-gray-700" />
@@ -108,9 +97,7 @@ const QueryInput = () => {
         </div>
 
         <div className="ml-auto flex space-x-4">
-          {/* Clear Results Button */}
           <div className="flex cursor-pointer bg-white border border-gray-300 rounded-sm p-2 shadow hover:bg-blue-50">
-            {/* Broom Icon */}
             <div className="flex items-center justify-center">
               <PiBroomFill className="text-2xl text-gray-700" />
             </div>
@@ -121,9 +108,7 @@ const QueryInput = () => {
             </div>
           </div>
 
-          {/* History Button */}
           <div className="flex cursor-pointer bg-white border border-gray-300 rounded-sm p-2 shadow hover:bg-blue-50">
-            {/* History Icon */}
             <div className="flex items-center justify-center">
               <FaHistory className="text-lg text-gray-700" />
             </div>
@@ -134,50 +119,45 @@ const QueryInput = () => {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Results */}
-      <div className="flex-grow flex items-center justify-center pt-0 p-4 rounded-md border-t border-gray-300 bg-white mb-24">
-        {results.length > 0 ? (
-          <QueryResults results={results} tableInfo={tableInfo} />
+      <div className="flex-grow flex items-center justify-center pt-0 p-4 rounded-md bg-white mb-20">
+        {isLoading ? (
+          <FaSpinner className="animate-spin text-4xl text-gray-700" />
+        ) : results.length > 0 ? (
+          <QueryResults results={results} />
         ) : (
-          <p className="text-gray-500 text-center">Enter Queries</p>
+          <div className="h-full w-full"></div>
         )}
       </div>
 
-      {/* Error Message */}
       {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
 
-      {/* Query Input Box */}
-      <div className="fixed bottom-4 left-0 right-0 mx-auto max-w-4xl border border-gray-300 bg-offwhite rounded-md">
+      <div className="fixed bottom-4 left-0 right-0 p-3 mx-auto max-w-2xl bg-offwhite border-2 border-gray-300 rounded-2xl">
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col">
-            {/* Textarea */}
             <textarea
-              ref={textareaRef}
-              className="w-full bg-offwhite rounded-md px-4 py-3 text-sm focus:outline-none resize-none placeholder-gray-400 max-h-52 overflow-auto"
+              ref={inputRef}
               value={query}
               onChange={handleInputChange}
-              placeholder="Enter a natural language query..."
-              rows={1}
+              className="w-full bg-offwhite rounded-2xl p-1 text-sm font-sans focus:outline-none resize-none placeholder-gray-500 max-h-52 overflow-auto"
+              placeholder="Enter a Natural Language Query..."
+              rows = "1"
             />
 
-            <div className="flex items-center justify-between">
-              {/* Help Button */}
+            <div className="flex items-center justify-between mt-2">
               <button
                 type="button"
-                className="mx-1 p-2 rounded-full text-gray-700 hover:bg-gray-300"
+                className="rounded-lg text-gray-700 hover:text-gray-300"
               >
-                <FaCircleQuestion className="h-5 w-5" />
+                <FaInfoCircle className="h-6 w-6" />
               </button>
 
-              {/* Send Button */}
               <button
                 type="submit"
-                className="mx-1 p-2 rounded-full text-gray-700 hover:bg-gray-300"
+                className="rounded-lg text-gray-800 hover:text-gray-400"
               >
-                <HiPaperAirplane className="h-5 w-5" />
+                <HiPaperAirplane className="h-6 w-6" />
               </button>
             </div>
           </div>
