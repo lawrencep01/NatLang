@@ -54,7 +54,7 @@ Content-Type: application/json
 }
 
 ### Test Table List
-GET http://127.0.0.1:5000/tables?connection_id=1
+GET http://127.0.0.1:5000/tables?connection_id=2
 
 ### Test Table Details
 GET http://127.0.0.1:5000/table-details/player?connection_id=1
@@ -66,3 +66,6 @@ Content-Type: application/json
 {
     "query": "SELECT * FROM artist WHERE name LIKE 'A%'"
 }
+
+### Test Schema
+GET http://127.0.0.1:5000/schema?connection_id=2

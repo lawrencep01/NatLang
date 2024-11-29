@@ -2,27 +2,59 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import NavBar from "./components/NavBar";
-import Database from "./components/Database";
+import DBTables from "./components/DBTables";
 import QueryInput from "./components/QueryInput";
 import Connections from "./components/Connections";
+import SchemaDiagram from "./components/SchemaDiagram";
 import { ConnectionProvider } from "./contexts/ConnectionContext";
 
 const App = () => {
   return (
     <ConnectionProvider>
-    <Router>
-      <div className="font-sans bg-white">
-        <NavBar />
-        <div className="container mx-auto px-3">
+      <Router>
+        <div className="font-sans bg-white">
+          <NavBar />
           <Routes>
-            <Route path="/" element={<h2 className="mt-4">To Do</h2>} />
-            <Route path="/connections" element={<Connections />} />
-            <Route path="/database" element={<Database />} />
-            <Route path="/queries" element={<QueryInput />} />
+            <Route
+              path="/schema"
+              element={<SchemaDiagram />}
+            />
+            {/* Wrapper for other routes with container classes */}
+            <Route
+              path="/"
+              element={
+                <div className="container mx-auto px-3">
+                  <h2 className="mt-4">To Do</h2>
+                </div>
+              }
+            />
+            <Route
+              path="/connections"
+              element={
+                <div className="container mx-auto px-3">
+                  <Connections />
+                </div>
+              }
+            />
+            <Route
+              path="/tables"
+              element={
+                <div className="container mx-auto px-3">
+                  <DBTables />
+                </div>
+              }
+            />
+            <Route
+              path="/queries"
+              element={
+                <div className="container mx-auto px-3">
+                  <QueryInput />
+                </div>
+              }
+            />
           </Routes>
         </div>
-      </div>
-    </Router>
+      </Router>
     </ConnectionProvider>
   );
 };

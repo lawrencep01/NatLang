@@ -66,7 +66,7 @@ const QueryResults = ({ results }) => {
                   key={result.id}
                   onMouseEnter={() => setHoveredCmdId(result.id)}
                   onMouseLeave={() => setHoveredCmdId(null)}
-                  className={`flex items-center w-full ${
+                  className={`flex items-center w-full mb-2 ${
                     hoveredCmdId === result.id ? "bg-gray-200 cursor-pointer" : ""
                   } hover:bg-gray-200`}
                 >

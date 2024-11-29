@@ -19,8 +19,13 @@ const NavBar = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/database" className={getLinkClass}>
-              Database
+            <NavLink to="/schema" className={getLinkClass}>
+              Schema
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/tables" className={getLinkClass}>
+              Tables
             </NavLink>
           </li>
           <li>

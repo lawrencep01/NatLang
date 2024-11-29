@@ -102,16 +102,26 @@ def setup_routes(app):
         finally:
             session.close()
 
+    @app.route("/schema", methods=["GET"])
+    def get_schema():
+        connection_id = request.args.get("connection_id")
+        if not connection_id:
+            return jsonify({"error": "connection_id is required"}), 400
+        schema_info = fetch_db_schema(connection_id)
+        if not schema_info:
+            return jsonify({"error": "Failed to fetch schema information"}), 500
+        return jsonify({"schema": schema_info}), 200
+
     # List all tables in the database for user information
     @app.route("/tables", methods=["GET"])
     def get_tables():
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        tables, database_name = fetch_table_list(connection_id)
+        database_name, tables = fetch_table_list(connection_id)
         if not tables:
             return jsonify({"error": "Failed to fetch table list"}), 500
-        return jsonify({"tables": tables, "databaseName": database_name}), 200
+        return jsonify({"databaseName": database_name, "tables": tables}), 200
 
     # Retrieve details of a specific table in the database
     @app.route("/table-details/<table_name>", methods=["GET"])
@@ -149,6 +159,7 @@ def setup_routes(app):
         schema = fetch_db_schema(connection_id)
         if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
+
         try:
             response = analyze_query(natlang_query, schema)
             table_name, table_description = response.split("|")
@@ -177,7 +188,6 @@ def setup_routes(app):
                 connection_id
             ) as connection, connection.cursor() as cursor:
                 queries = convert_query(natlang_query, schema)
-                print(queries)
                 if not queries:
                     return (
                         jsonify(
@@ -204,7 +214,9 @@ def setup_routes(app):
                                     "COMMIT issued without active transaction"
                                 )
                         else:
-                            query_result = execute_query(cursor, connection, query, in_transaction)
+                            query_result = execute_query(
+                                cursor, connection, query, in_transaction
+                            )
                             query_result["id"] = str(uuid.uuid4())
                             res.append(query_result)
                     except Exception as sql_error:

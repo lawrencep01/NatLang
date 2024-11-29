@@ -7,8 +7,10 @@ from psycopg2 import sql
 # Fetch table schema data from the database to be used as input for OpenAI's API
 def fetch_db_schema(connection_id):
     try:
-        with get_db_connection(connection_id) as connection, connection.cursor() as cursor:
-            # Query to fetch table schema information
+        with get_db_connection(
+            connection_id
+        ) as connection, connection.cursor() as cursor:
+            # Query to fetch table and column schema information
             schema_query = """
                 SELECT
                     cols.table_name,
@@ -17,9 +19,9 @@ def fetch_db_schema(connection_id):
                     cols.is_nullable,
                     cols.column_default,
                     tc.constraint_type,
-                    kcu.column_name AS key_column,
                     ccu.table_name AS foreign_table,
-                    ccu.column_name AS foreign_column
+                    ccu.column_name AS foreign_column,
+                    pgd.description
                 FROM
                     information_schema.columns AS cols
                 LEFT JOIN
@@ -27,14 +29,27 @@ def fetch_db_schema(connection_id):
                 ON
                     cols.table_name = kcu.table_name
                     AND cols.column_name = kcu.column_name
+                    AND cols.table_schema = kcu.table_schema
                 LEFT JOIN
                     information_schema.table_constraints AS tc
                 ON
                     kcu.constraint_name = tc.constraint_name
+                    AND kcu.table_schema = tc.table_schema
                 LEFT JOIN
                     information_schema.constraint_column_usage AS ccu
                 ON
                     tc.constraint_name = ccu.constraint_name
+                    AND tc.table_schema = ccu.table_schema
+                LEFT JOIN
+                    pg_catalog.pg_statio_all_tables AS st
+                ON
+                    st.schemaname = cols.table_schema
+                    AND st.relname = cols.table_name
+                LEFT JOIN
+                    pg_catalog.pg_description AS pgd
+                ON
+                    pgd.objoid = st.relid
+                    AND pgd.objsubid = cols.ordinal_position
                 WHERE
                     cols.table_schema = 'public'
                 ORDER BY
@@ -42,33 +57,51 @@ def fetch_db_schema(connection_id):
                 """
 
             cursor.execute(schema_query)
-            schema = defaultdict(list)
+            schema = defaultdict(dict)
 
-            # Process and format schema data
             for row in cursor.fetchall():
-                table_name = row["table_name"]
-                column_info = (
-                    f"  - {row['column_name']} ({row['data_type']})"
-                    f" [Nullable: {row['is_nullable']}]"
-                    f" [Default: {row['column_default'] or 'None'}]"
-                )
+                table = row["table_name"]
+                column = row["column_name"]
+
+                if column not in schema[table]:
+                    schema[table][column] = {
+                        "name": column,
+                        "type": row["data_type"],
+                        "nullable": row["is_nullable"] == "YES",
+                        "default": row["column_default"],
+                        "primary_key": False,
+                        "foreign_keys": [],
+                        "description": row["description"],
+                    }
+
+                # Handle Primary Key
                 if row["constraint_type"] == "PRIMARY KEY":
-                    column_info += " [Primary Key]"
-                if row["constraint_type"] == "FOREIGN KEY":
-                    column_info += f" [Foreign Key: {row['foreign_table']}.{row['foreign_column']}]"
-                schema[table_name].append(column_info)
+                    schema[table][column]["primary_key"] = True
+                    schema[table][column][
+                        "nullable"
+                    ] = False  # Ensure PK is not nullable
 
-            # Format schema into a readable description
-            schema_desc = "\nDatabase Schema:\n"
+                # Handle Foreign Key
+                if (
+                    row["constraint_type"] == "FOREIGN KEY"
+                    and row["foreign_table"]
+                    and row["foreign_column"]
+                ):
+                    fk = {
+                        "table": row["foreign_table"],
+                        "column": row["foreign_column"],
+                    }
+                    if fk not in schema[table][column]["foreign_keys"]:
+                        schema[table][column]["foreign_keys"].append(fk)
+
+            # Convert defaultdict to regular dict
+            final_schema = {}
             for table, columns in schema.items():
-                schema_desc += f"{table}\n"
-                schema_desc += "\n".join(columns) + "\n\n"
+                final_schema[table] = list(columns.values())
 
-            return schema_desc
-
-    except Exception as e:
-        print(f"Error fetching table schema: {e}")
-        return None
+            return final_schema
+    except Exception:
+        return {}
 
 
 # Fetch a list of all tables in the database
@@ -92,7 +125,7 @@ def fetch_table_list(connection_id):
                 cursor.execute("SELECT current_database()")
                 database_name = cursor.fetchone()["current_database"]
 
-                return tables, database_name
+                return database_name, tables
     except Exception as e:
         print(f"Error fetching table list: {e}")
         return []

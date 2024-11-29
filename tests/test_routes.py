@@ -72,10 +72,10 @@ def test_delete_connection(client):
 
 def test_get_tables(client):
     with patch('routes.fetch_table_list') as mock_fetch_table_list:
-        mock_fetch_table_list.return_value = (["table1", "table2"], "test_db")
+        mock_fetch_table_list.return_value = ("test_db", ["table1", "table2"])
         response = client.get("/tables?connection_id=1")
         assert response.status_code == 200
-        assert response.json == {"tables": ["table1", "table2"], "databaseName": "test_db"}
+        assert response.json == {"databaseName": "test_db", "tables": ["table1", "table2"]}
 
 def test_get_table_details(client):
     with patch('routes.fetch_table_details') as mock_fetch_table_details:

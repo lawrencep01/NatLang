@@ -30,6 +30,7 @@ def test_fetch_db_schema(mock_db_connection):
             "key_column": "id",
             "foreign_table": None,
             "foreign_column": None,
+            "description": None,
         },
         {
             "table_name": "users",
@@ -41,15 +42,32 @@ def test_fetch_db_schema(mock_db_connection):
             "key_column": None,
             "foreign_table": None,
             "foreign_column": None,
+            "description": None,
         },
     ]
     result = fetch_db_schema("test_connection_id")
-    expected = (
-        "\nDatabase Schema:\n"
-        "users\n"
-        "  - id (integer) [Nullable: NO] [Default: nextval('users_id_seq'::regclass)] [Primary Key]\n"
-        "  - name (text) [Nullable: YES] [Default: None]\n\n"
-    )
+    expected = {
+        "users": [
+            {
+                "name": "id",
+                "type": "integer",
+                "nullable": False,
+                "default": "nextval('users_id_seq'::regclass)",
+                "primary_key": True,
+                "foreign_keys": [],
+                "description": None,
+            },
+            {
+                "name": "name",
+                "type": "text",
+                "nullable": True,
+                "default": None,
+                "primary_key": False,
+                "foreign_keys": [],
+                "description": None,
+            },
+        ]
+    }
     assert result == expected
 
 def test_fetch_table_list(mock_db_connection):
@@ -57,7 +75,7 @@ def test_fetch_table_list(mock_db_connection):
         [{"table_name": "users"}, {"table_name": "orders"}],
     ]
     mock_db_connection.fetchone.return_value = {"current_database": "test_db"}
-    tables, database_name = fetch_table_list("test_connection_id")
+    database_name, tables = fetch_table_list("test_connection_id")
     assert tables == ["users", "orders"]
     assert database_name == "test_db"
 
@@ -81,7 +99,6 @@ def test_get_where_clause():
     query = "DELETE FROM users WHERE id = 1"
     where_clause = get_where_clause(query)
     assert where_clause == "id = 1"
-
 
 def test_get_new_rows():
     pre = [{"id": 1, "name": "Alice"}]

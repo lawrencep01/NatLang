@@ -6,12 +6,12 @@ import { ConnectionContext } from "../contexts/ConnectionContext";
 import TableDetails from "./TableDetails";
 
 /**
- * Database Component
+ * Database Tables Component
  *
  * Displays a list of tables from the selected database connection.
  * Allows users to view details of each table.
  */
-const Database = () => {
+const DBTables = () => {
   const { connectionId } = useContext(ConnectionContext); // Context to access the currently selected connection ID
   const [tables, setTables] = useState([]); // State to hold the list of tables for the selected database
   const [selectedTable, setSelectedTable] = useState(null); // State to hold the details of the selected table
@@ -39,6 +39,7 @@ const Database = () => {
       fetchTables();
     }
   }, [connectionId]);
+
 
   /**
    * Handles the selection of a table by fetching its details from the API.
@@ -108,4 +109,4 @@ const Database = () => {
   );
 };
 
-export default Database;
+export default DBTables;
