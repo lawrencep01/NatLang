@@ -72,23 +72,29 @@ def test_fetch_db_schema(mock_db_connection):
 
 def test_fetch_table_list(mock_db_connection):
     mock_db_connection.fetchall.side_effect = [
-        [{"table_name": "users"}, {"table_name": "orders"}],
+        [{"table_name": "users", "description": "User table"}, {"table_name": "orders", "description": "Order table"}],
     ]
-    mock_db_connection.fetchone.return_value = {"current_database": "test_db"}
-    database_name, tables = fetch_table_list("test_connection_id")
-    assert tables == ["users", "orders"]
-    assert database_name == "test_db"
+    tables = fetch_table_list("test_connection_id")
+    expected = [
+        {"tableName": "users", "description": "User table"},
+        {"tableName": "orders", "description": "Order table"},
+    ]
+    assert tables == expected
 
 def test_fetch_table_details(mock_db_connection):
     mock_db_connection.fetchall.side_effect = [
         [{"column_name": "id", "data_type": "integer"}, {"column_name": "name", "data_type": "text"}],
         [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
     ]
-    mock_db_connection.fetchone.return_value = {"count": 2}
-    columns, row_count, data = fetch_table_details("test_connection_id", "users")
+    mock_db_connection.fetchone.side_effect = [
+        {"count": 2},
+        {"description": "User table description"}
+    ]
+    columns, row_count, data, description = fetch_table_details("test_connection_id", "users")
     assert columns == [{"name": "id", "type": "integer"}, {"name": "name", "type": "text"}]
     assert row_count == 2
     assert data == [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+    assert description == "User table description"
 
 def test_get_table_name():
     query = "SELECT * FROM users WHERE id = 1"

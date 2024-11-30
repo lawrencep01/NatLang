@@ -65,6 +65,38 @@ def analyze_query(query, schema):
     return response.choices[0].message.content.strip()
 
 
+def generate_details(missing_descriptions, schema):
+    schema_str = format_schema(schema)
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert at generating SQL table and column descriptions. "
+                    "Generate SQL commands to put these descriptions in the database. "
+                    f"Provided is the table schema for the database you are working with:\n{schema_str}\n"
+                    f"Also provided are the tables and columns in the database that are missing descriptions:\n{missing_descriptions}\n"
+                    "The output should contain only valid SQL query text, no formatting, or markdown syntax such as '''sql. "
+                    "The descriptions should be concise and informative."
+                    "Only be provided for tables and columns that are missing descriptions. "
+                    "You should not provide any additional comments or explanations in the output. "
+                    "Ensure that any single quotes within the descriptions are properly escaped by doubling them (e.g., ' becomes '')."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Generate SQL commands to provide detailed descriptions of the database's tables and columns."
+                ),
+            },
+        ],
+        max_tokens=3000,
+        temperature=0.3,
+    )
+    return response.choices[0].message.content.strip()
+
+
 def format_schema(schema):
     schema_str = "Database Schema:\n"
     for table, columns in schema.items():

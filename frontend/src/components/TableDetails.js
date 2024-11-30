@@ -8,7 +8,7 @@ const TableDetails = ({ table }) => {
   console.log(table.rowCount)
   return (
     <div className="mt-8">
-      <Table tableName={table.name} data={table.data} />
+      <Table tableName={table.name} description={table.description} data={table.data} />
     </div>
   );
 };

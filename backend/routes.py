@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from database import get_db_connection
-from natlang import convert_query, analyze_query
+from natlang import convert_query, analyze_query, generate_details
+from collections import defaultdict
 from models import DatabaseConnection, SessionLocal
 from utils import (
     fetch_table_list,
@@ -102,6 +103,22 @@ def setup_routes(app):
         finally:
             session.close()
 
+    @app.route("/db-name", methods=["GET"])
+    def get_db_name():
+        connection_id = request.args.get("connection_id")
+        if not connection_id:
+            return jsonify({"error": "connection_id is required"}), 400
+        try:
+            with get_db_connection(
+                connection_id
+            ) as connection, connection.cursor() as cursor:
+                cursor.execute("SELECT current_database()")
+                database_name = cursor.fetchone()["current_database"]
+                return jsonify({"databaseName": database_name}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # Retrieve the schema of the database
     @app.route("/schema", methods=["GET"])
     def get_schema():
         connection_id = request.args.get("connection_id")
@@ -112,16 +129,88 @@ def setup_routes(app):
             return jsonify({"error": "Failed to fetch schema information"}), 500
         return jsonify({"schema": schema_info}), 200
 
+    # Generate table names and descriptions in the database, if they are missing
+    @app.route("/generate-descriptions", methods=["POST"])
+    def generate_descriptions():
+        connection_id = request.args.get("connection_id")
+        if not connection_id:
+            return jsonify({"error": "connection_id is required"}), 400
+        schema = fetch_db_schema(connection_id)
+        if not schema:
+            return jsonify({"error": "Failed to fetch table schema"}), 500
+        try:
+            with get_db_connection(
+                connection_id
+            ) as connection, connection.cursor() as cursor:
+                # Query for tables without descriptions
+                cursor.execute(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                    AND obj_description((table_schema || '.' || table_name)::regclass, 'pg_class') IS NULL;
+                """
+                )
+                tables_without_descriptions = cursor.fetchall()
+
+                # Query for columns without descriptions
+                cursor.execute(
+                    """
+                    SELECT table_name, column_name
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                    AND pg_catalog.col_description(format('%s.%s', table_schema, table_name)::regclass, ordinal_position) IS NULL;
+                """
+                )
+                columns_without_descriptions = cursor.fetchall()
+
+                # Tables and columns without descriptions
+                missing_descriptions = {
+                    "tables_without_description": [
+                        table["table_name"] for table in tables_without_descriptions
+                    ],
+                    "columns_without_description": defaultdict(list),
+                }
+
+                # Fill data for columns without descriptions
+                for row in columns_without_descriptions:
+                    table_name = row["table_name"]
+                    column_name = row["column_name"]
+                    missing_descriptions["columns_without_description"][
+                        table_name
+                    ].append(column_name)
+                missing_descriptions["columns_without_description"] = dict(
+                    missing_descriptions["columns_without_description"]
+                )
+
+                commands = generate_details(missing_descriptions, schema)
+                if not commands:
+                    return jsonify({"error": "Failed to generate SQL commands"}), 500
+
+                print(commands)
+
+                # Filter out empty commands, split into a list of commands, and execute each command
+                commands = [c.strip() for c in commands.split(";") if c.strip()]
+                for command in commands:
+                    print(f"Executing command: {command}")  # Log the command
+                    cursor.execute(command)
+                connection.commit()
+
+                return jsonify({"success": "Commands executed successfully"}), 200
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     # List all tables in the database for user information
     @app.route("/tables", methods=["GET"])
     def get_tables():
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        database_name, tables = fetch_table_list(connection_id)
+        tables = fetch_table_list(connection_id)
         if not tables:
             return jsonify({"error": "Failed to fetch table list"}), 500
-        return jsonify({"databaseName": database_name, "tables": tables}), 200
+        return jsonify({"tables": tables}), 200
 
     # Retrieve details of a specific table in the database
     @app.route("/table-details/<table_name>", methods=["GET"])
@@ -130,7 +219,9 @@ def setup_routes(app):
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
         try:
-            columns, row_count, data = fetch_table_details(connection_id, table_name)
+            columns, row_count, data, description = fetch_table_details(
+                connection_id, table_name
+            )
             return (
                 jsonify(
                     {
@@ -138,6 +229,7 @@ def setup_routes(app):
                         "columns": columns,
                         "rowCount": row_count,
                         "data": data,
+                        "description": description,
                     }
                 ),
                 200,

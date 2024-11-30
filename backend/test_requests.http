@@ -57,7 +57,7 @@ Content-Type: application/json
 GET http://127.0.0.1:5000/tables?connection_id=2
 
 ### Test Table Details
-GET http://127.0.0.1:5000/table-details/player?connection_id=1
+GET http://127.0.0.1:5000/table-details/artist?connection_id=2
 
 ### Test Analyze Query
 POST http://127.0.0.1:5000/analyze?connection_id=2
@@ -68,4 +68,10 @@ Content-Type: application/json
 }
 
 ### Test Schema
-GET http://127.0.0.1:5000/schema?connection_id=2
+GET http://127.0.0.1:5000/schema?connection_id=4
+
+### Test Generate Descriptions
+POST http://127.0.0.1:5000/generate-descriptions?connection_id=2
+
+### Test GET database name
+GET http://127.0.0.1:5000/db-name?connection_id=2

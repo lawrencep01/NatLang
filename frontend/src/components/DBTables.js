@@ -16,7 +16,6 @@ const DBTables = () => {
   const [tables, setTables] = useState([]); // State to hold the list of tables for the selected database
   const [selectedTable, setSelectedTable] = useState(null); // State to hold the details of the selected table
   const [error, setError] = useState(null); // State to handle error messages
-  const [databaseName, setDatabaseName] = useState(""); // State to hold the name of the database
   const [isLoading, setIsLoading] = useState(false); // State to handle whether or not the data is loading
 
   /**
@@ -31,7 +30,6 @@ const DBTables = () => {
             `/tables?connection_id=${connectionId}`
           );
           setTables(response.data.tables);
-          setDatabaseName(response.data.databaseName);
         } catch (err) {
           setError("Failed to fetch table list.");
         }
@@ -39,7 +37,6 @@ const DBTables = () => {
       fetchTables();
     }
   }, [connectionId]);
-
 
   /**
    * Handles the selection of a table by fetching its details from the API.
@@ -67,29 +64,45 @@ const DBTables = () => {
 
   return (
     <div className="min-h-screen py-8">
+      {/* Tables Header */}
       <div className="mx-auto mb-4 flex w-full justify-center items-center">
-        <h1 className="text-lg font-semibold tracking-tight">{databaseName}</h1>
+        <h1 className="text-lg font-semibold tracking-tight">Tables</h1>
       </div>
+
       {/* Tables List */}
-      <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-4 grid-cols-3">
         {tables.map((table, index) => (
           <li
             key={index}
-            className="flex items-center p-4 bg-white border rounded shadow hover:bg-gray-100 cursor-pointer"
-            onClick={() => handleTableClick(table)}
+            className="flex items-center"
+            onClick={() => handleTableClick(table.tableName)}
           >
-            <FaTable className="text-2xl text-gray-800 mr-3" />
-            <span className="font-sm tracking-tight text-base font-sans">
-              {table}
-            </span>
+            <div className="flex w-full cursor-pointer bg-white border border-gray-300 rounded-sm p-1.5 shadow hover:bg-blue-50 transition relative">
+              <div className="flex items-center justify-center ml-1">
+                <FaTable className="h-8 w-8 text-gray-700" />
+              </div>
 
-            {/* Selection Status Indicator */}
-            <div className="flex items-center ml-auto mr-2 flex-shrink-0 text-base">
-              {selectedTable && selectedTable.name === table ? (
-                <FaCircle className="text-green-600 text-xs ml-2 animate-glow" />
-              ) : (
-                <FaCircle className="text-gray-500 text-xs ml-2" />
-              )}
+              <div className="flex-grow ml-2">
+                <div className="inline-block">
+                  <span className="tracking-tight text-sm font-semibold">
+                    {table.tableName}
+                  </span>
+                </div>
+                <div className="block leading-[0.05]">
+                  <span className="italic tracking-tighter text-xs font-sans">
+                    {table.description}
+                  </span>
+                </div>
+              </div>
+
+              {/* Selection Status Indicator */}
+              <div className="flex items-center ml-auto mr-2 flex-shrink-0 text-base">
+                {selectedTable && selectedTable.name === table.tableName ? (
+                  <FaCircle className="text-green-600 h-2.5 w-2.5 ml-2 animate-glow" />
+                ) : (
+                  <FaCircle className="text-gray-500 h-2.5 w-2.5 ml-2" />
+                )}
+              </div>
             </div>
           </li>
         ))}

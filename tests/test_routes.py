@@ -72,21 +72,27 @@ def test_delete_connection(client):
 
 def test_get_tables(client):
     with patch('routes.fetch_table_list') as mock_fetch_table_list:
-        mock_fetch_table_list.return_value = ("test_db", ["table1", "table2"])
+        mock_fetch_table_list.return_value = (["table1", "table2"])
         response = client.get("/tables?connection_id=1")
         assert response.status_code == 200
-        assert response.json == {"databaseName": "test_db", "tables": ["table1", "table2"]}
+        assert response.json == {"tables": ["table1", "table2"]}
 
 def test_get_table_details(client):
     with patch('routes.fetch_table_details') as mock_fetch_table_details:
-        mock_fetch_table_details.return_value = (["column1", "column2"], 10, [{"column1": "value1", "column2": "value2"}])
+        mock_fetch_table_details.return_value = (
+            [{"name": "column1", "type": "text"}, {"name": "column2", "type": "integer"}],
+            10,
+            [{"column1": "value1", "column2": "value2"}],
+            "Table description"
+        )
         response = client.get("/table-details/table1?connection_id=1")
         assert response.status_code == 200
         assert response.json == {
             "name": "table1",
-            "columns": ["column1", "column2"],
+            "columns": [{"name": "column1", "type": "text"}, {"name": "column2", "type": "integer"}],
             "rowCount": 10,
-            "data": [{"column1": "value1", "column2": "value2"}]
+            "data": [{"column1": "value1", "column2": "value2"}],
+            "description": "Table description"
         }
 
 def test_create_query(client):

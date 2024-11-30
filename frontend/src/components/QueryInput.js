@@ -21,7 +21,7 @@ const QueryInput = () => {
     const fetchDatabaseName = async () => {
       if (!connectionId) return;
       try {
-        const response = await api.get(`/tables?connection_id=${connectionId}`);
+        const response = await api.get(`/db-name?connection_id=${connectionId}`);
         setDatabaseName(response.data.databaseName);
       } catch (err) {
         setError("Failed to fetch database name.");

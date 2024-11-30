@@ -104,28 +104,32 @@ def fetch_db_schema(connection_id):
         return {}
 
 
-# Fetch a list of all tables in the database
+# Fetch a list of all tables in the database along with their descriptions
 def fetch_table_list(connection_id):
     try:
         with get_db_connection(connection_id) as connection:
             with connection.cursor() as cursor:
-                # Query to fetch all tables in the database
+                # Query to fetch all user-defined tables and their descriptions in the database
                 table_query = """
-                SELECT table_name
-                FROM information_schema.tables
-                WHERE table_schema = 'public'
-                ORDER BY table_name;
+                SELECT
+                    t.table_name,
+                    obj_description(c.oid) AS description
+                FROM
+                    information_schema.tables t
+                JOIN
+                    pg_class c ON c.relname = t.table_name
+                WHERE
+                    t.table_schema = 'public'
+                    AND t.table_type = 'BASE TABLE'
+                ORDER BY
+                    t.table_name;
                 """
                 cursor.execute(table_query)
                 tables = [
-                    row["table_name"] for row in cursor.fetchall()
-                ]  # Store table names in a list
-
-                # Query to fetch the database name
-                cursor.execute("SELECT current_database()")
-                database_name = cursor.fetchone()["current_database"]
-
-                return database_name, tables
+                    {"tableName": row["table_name"], "description": row["description"]}
+                    for row in cursor.fetchall()
+                ]  # Store table names and descriptions in a list of dictionaries
+                return tables
     except Exception as e:
         print(f"Error fetching table list: {e}")
         return []
@@ -135,6 +139,7 @@ def fetch_table_details(connection_id, table_name):
     try:
         with get_db_connection(connection_id) as connection:
             with connection.cursor() as cursor:
+                # Fetch column details
                 cursor.execute(
                     """
                     SELECT column_name, data_type
@@ -143,9 +148,10 @@ def fetch_table_details(connection_id, table_name):
                 """,
                     (table_name,),
                 )
-
                 columns = cursor.fetchall()
+                print(f"Columns: {columns}")
 
+                # Fetch row count
                 cursor.execute(
                     sql.SQL("SELECT COUNT(*) FROM {}").format(
                         sql.Identifier(table_name)
@@ -153,22 +159,35 @@ def fetch_table_details(connection_id, table_name):
                 )
                 row_count = cursor.fetchone()
 
+                # Fetch table data
                 cursor.execute(
                     sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
                 )
                 data = cursor.fetchall()
 
+                # Fetch table description
+                cursor.execute(
+                    """
+                    SELECT obj_description(oid) AS description
+                    FROM pg_class
+                    WHERE relname = %s
+                    """,
+                    (table_name,),
+                )
+                description = cursor.fetchone()
+
+                # Process the fetched data
                 columns = [
                     {"name": col["column_name"], "type": col["data_type"]}
                     for col in columns
                 ]
                 row_count = row_count["count"] if row_count else 0
                 data = [dict(row) for row in data]
-
-                return columns, row_count, data
+                description = description["description"] if description else ""
+                return columns, row_count, data, description
     except Exception as e:
         print(f"Error fetching table details: {e}")
-        return None, None, None
+        return None, None, None, None
 
 
 # Extract table name from a query using regex
