@@ -20,7 +20,7 @@ module.exports = {
         glow: 'glow 1s infinite alternate',
       },
       colors: {
-        'offwhite': 'rgb(250, 250, 252)'
+        'offwhite': 'rgb(250, 250, 252)',
       },
     },
   },

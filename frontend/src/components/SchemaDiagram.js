@@ -6,14 +6,19 @@ import api from "../services/api";
 import ERNode from "./ERNode";
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-// SchemaDiagram.js
-
+/**
+ * Function to layout nodes and edges using ELK (Eclipse Layout Kernel).
+ *
+ * @param {Array} nodes - The list of nodes to layout.
+ * @param {Array} edges - The list of edges to layout.
+ * @returns {Object} - The layouted nodes and edges.
+ */
 const getLayoutedElements = async (nodes, edges) => {
   const elk = new ELK();
   const graph = {
     id: 'root',
     layoutOptions: {
-      'elk.algorithm': 'layered', // Uses the layered algorithm suitable for hierarchical layouts
+      'elk.algorithm': 'layered', // Uses the layered algorithm suitable for ER Diagrams
       'elk.direction': 'RIGHT', // Sets the direction of the layout from left to right
       'elk.layered.spacing.nodeNodeBetweenLayers': 80, // Spacing between nodes in different layers
       'elk.layered.nodePlacement.strategy': 'LINEAR', // Places nodes in a linear fashion within layers
@@ -56,16 +61,26 @@ const getLayoutedElements = async (nodes, edges) => {
   }
 };
 
+/**
+ * SchemaDiagram Component
+ *
+ * Renders the entity-relationship diagram based on the selected database connection.
+ *
+ * @returns {JSX.Element} - The rendered SchemaDiagram component.
+ */
 const SchemaDiagram = () => {
-  const { connectionId } = useContext(ConnectionContext);
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
-  const [error, setError] = useState(null);
-  const [hoveredColumn, setHoveredColumn] = useState(null);
-  const nodeTypes = useMemo(() => ({ erNode: ERNode }), []);
+  const { connectionId } = useContext(ConnectionContext); // Retrieves the current connection ID from context
+  const [nodes, setNodes] = useState([]); // State to hold the list of nodes
+  const [edges, setEdges] = useState([]); // State to hold the list of edges
+  const [error, setError] = useState(null); // State to handle any errors during API calls
+  const [hoveredColumn, setHoveredColumn] = useState(null); // State to track the currently hovered column
+  const nodeTypes = useMemo(() => ({ erNode: ERNode }), []); // Defines custom node types for ReactFlow
 
   useEffect(() => {
     if (connectionId) {
+      /**
+       * Fetches the schema for the selected connection and processes nodes and edges.
+       */
       const fetchSchema = async () => {
         try {
           const response = await api.get(`/schema?connection_id=${connectionId}`);
@@ -74,6 +89,7 @@ const SchemaDiagram = () => {
           const fetchedNodes = [];
           const fetchedEdges = [];
 
+          // Iterate over each table in the schema
           Object.keys(schema).forEach(tableName => {
             fetchedNodes.push({
               id: tableName,
@@ -83,9 +99,10 @@ const SchemaDiagram = () => {
                 columns: schema[tableName],
                 onHover: setHoveredColumn,
               },
-              position: { x: 0, y: 0 },
+              position: { x: 0, y: 0 }, // Initial position; will be updated by layout
             });
 
+            // Iterate over each column to find foreign keys and create edges
             schema[tableName].forEach(column => {
               if (column.foreign_keys && column.foreign_keys.length > 0) {
                 column.foreign_keys.forEach(fk => {
@@ -107,6 +124,7 @@ const SchemaDiagram = () => {
             });
           });
 
+          // Apply layout to nodes and edges
           const layoutedElements = await getLayoutedElements(fetchedNodes, fetchedEdges);
           setNodes(layoutedElements.nodes);
           setEdges(layoutedElements.edges);
@@ -119,17 +137,25 @@ const SchemaDiagram = () => {
     }
   }, [connectionId]);
 
+  /**
+   * Handles changes to nodes, updating the state accordingly.
+   */
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
   );
 
+  /**
+   * Handles changes to edges, updating the state accordingly.
+   */
   const onEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [setEdges]
   );
 
-  // Update edge styles based on hoveredColumn
+  /**
+   * Updates edge styles based on the currently hovered column.
+   */
   useEffect(() => {
     setEdges((eds) =>
       eds.map(edge => ({
@@ -146,9 +172,11 @@ const SchemaDiagram = () => {
 
   return (
     <div className="w-screen h-[94vh]">
+      {/* Display error message if fetching schema fails */}
       {error && (
         <div className="text-red-500 font-bold text-center mt-4">{error}</div>
       )}
+      {/* ReactFlow component to render the schema diagram */}
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -156,8 +184,8 @@ const SchemaDiagram = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
       >
-        <Background />
-        <Controls />
+        <Background /> {/* Adds a background grid */}
+        <Controls /> {/* Adds zoom and pan controls */}
       </ReactFlow>
     </div>
   );

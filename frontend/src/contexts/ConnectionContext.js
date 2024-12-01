@@ -1,5 +1,4 @@
-// contexts/ConnectionContext.js
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 /**
  * ConnectionContext
@@ -18,8 +17,16 @@ export const ConnectionContext = createContext();
  * @param {React.ReactNode} props.children - Child components that consume the context.
  */
 export const ConnectionProvider = ({ children }) => {
-  // State to hold the ID of the currently selected connection
-  const [connectionId, setConnectionId] = useState(null);
+  // Initialize connectionId from localStorage
+  const [connectionId, setConnectionId] = useState(() => {
+    const savedId = localStorage.getItem("connectionId");
+    return savedId ? JSON.parse(savedId) : null;
+  });
+
+  // Save connectionId to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("connectionId", JSON.stringify(connectionId));
+  }, [connectionId]);
 
   return (
     <ConnectionContext.Provider value={{ connectionId, setConnectionId }}>

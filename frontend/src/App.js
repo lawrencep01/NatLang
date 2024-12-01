@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import DBTables from "./components/DBTables";
 import QueryInput from "./components/QueryInput";
+import QueryHistory from "./components/QueryHistory";
 import Connections from "./components/Connections";
 import SchemaDiagram from "./components/SchemaDiagram";
 import { ConnectionProvider } from "./contexts/ConnectionContext";
@@ -49,6 +50,14 @@ const App = () => {
               element={
                 <div className="container mx-auto px-3">
                   <QueryInput />
+                </div>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <div className="container mx-auto px-3">
+                  <QueryHistory />
                 </div>
               }
             />

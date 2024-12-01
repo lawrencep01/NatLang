@@ -8,7 +8,7 @@ const Tooltip = ({ children, text }) => {
       <span className="absolute top-1/2 left-full ml-0 transform -translate-y-1/2 px-3 py-2 
                      bg-black text-white text-xs font-normal rounded-lg 
                      opacity-0 group-hover:opacity-100 transition-opacity 
-                     whitespace-nowrap shadow-md z-100 pointer-events-none">
+                     whitespace-nowrap shadow-md z-50 pointer-events-none">
         {text}
         {/* Tooltip Arrow */}
         <span

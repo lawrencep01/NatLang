@@ -53,20 +53,20 @@ const QueryResults = ({ results }) => {
   return (
     <div className="w-full mt-6">
       {/* Display the commands that were run */}
-      <div className="mb-4">
-        <div className="flex items-center justify-center mb-1">
+      <div className="mb-6">
+        <div className="flex items-center">
           <SiSqlite className="text-2xl text-gray-700 mr-1" />
-          <h2 className="text-lg font-semibold tracking-tight">Commands</h2>
+          <h2 className="text-base font-semibold tracking-tight">Commands</h2>
         </div>
-        <div className="flex justify-center">
-          <div className="flex bg-gray-50 p-2 rounded-sm mb-4 border border-gray-300 w-2/3">
+        <div className="flex">
+          <div className="flex items-center bg-gray-50 p-2 rounded-sm border border-gray-300 w-1/2">
             <p className="text-sm text-gray-800 font-sans whitespace-pre-wrap w-full">
               {results.map((result) => (
                 <span
                   key={result.id}
                   onMouseEnter={() => setHoveredCmdId(result.id)}
                   onMouseLeave={() => setHoveredCmdId(null)}
-                  className={`flex items-center w-full mb-2 ${
+                  className={`flex items-center w-full ${
                     hoveredCmdId === result.id ? "bg-gray-200 cursor-pointer" : ""
                   } hover:bg-gray-200`}
                 >

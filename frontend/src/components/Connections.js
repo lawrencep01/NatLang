@@ -151,10 +151,10 @@ const Connections = () => {
             className="flex mx-auto w-3/4 rounded-sm"
             onClick={() => handleConnectionClick(connection.id)}
           >
-            <div className="flex w-full cursor-pointer bg-white border border-gray-300 rounded-sm p-2 shadow hover:bg-blue-50 transition relative">
+            <div className="flex w-full cursor-pointer bg-gray-50 border border-gray-200 rounded-sm p-2 shadow hover:bg-blue-50 transition relative">
               {/* Database Icon */}
               <div className="flex items-center justify-center ml-3">
-                <FaDatabase className="text-3xl text-gray-700" />
+                <FaDatabase className="text-3xl text-gray-800" />
               </div>
               
               {/* Connection Details */}
@@ -187,7 +187,7 @@ const Connections = () => {
               {/* Edit Button with Tooltip */}
               <Tooltip text="Edit Connection">
                 <button
-                  className="group hover:bg-gray-300 rounded-full p-2 text-gray-700"
+                  className="group hover:bg-gray-300 rounded-full p-2 text-gray-800"
                   onClick={(e) => handleEditClick(connection, e)}
                 >
                   <FaEdit className="h-5 w-5" />
@@ -197,7 +197,7 @@ const Connections = () => {
               {/* Remove Button with Tooltip */}
               <Tooltip text="Remove Connection">
                 <button
-                  className="group hover:bg-gray-300 rounded-full p-2 text-gray-700"
+                  className="group hover:bg-gray-300 rounded-full p-2 text-gray-800"
                   onClick={(e) => handleRemoveClick(connection.id, e)}
                 >
                   <FaPlugCircleXmark className="h-5 w-5" />

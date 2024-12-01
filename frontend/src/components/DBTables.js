@@ -1,4 +1,3 @@
-// components/Database.js
 import React, { useEffect, useState, useContext } from "react";
 import api from "../services/api";
 import { FaTable, FaSpinner, FaCircle } from "react-icons/fa6";
@@ -77,9 +76,10 @@ const DBTables = () => {
             className="flex items-center"
             onClick={() => handleTableClick(table.tableName)}
           >
-            <div className="flex w-full cursor-pointer bg-white border border-gray-300 rounded-sm p-1.5 shadow hover:bg-blue-50 transition relative">
+            {/* Table Card */}
+            <div className="flex w-full cursor-pointer bg-gray-50 rounded-md border border-gray-200 p-1.5 shadow hover:bg-blue-50 transition relative">
               <div className="flex items-center justify-center ml-1">
-                <FaTable className="h-8 w-8 text-gray-700" />
+                <FaTable className="h-8 w-8 text-gray-800" />
               </div>
 
               <div className="flex-grow ml-2">
@@ -89,7 +89,7 @@ const DBTables = () => {
                   </span>
                 </div>
                 <div className="block leading-[0.05]">
-                  <span className="italic tracking-tighter text-xs font-sans">
+                  <span className="tracking-tighter text-xs font-light">
                     {table.description}
                   </span>
                 </div>
