@@ -39,26 +39,71 @@ jobs:
 
       # Install the necessary dependencies
       - name: Install dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r requirements.txt
       
       # Run Linting using flake8 to ensure code is formatted properly
       - name: Run Linting
+        working-directory: backend
         run: |
           pip install flake8
-          flake8 backend/
-
+          flake8 .
+      
       # Run unit tests and generate coverage report
       - name: Run Unit Tests
+        working-directory: backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest --cov=backend tests/
+          python -m pytest --cov=backend tests/
       
       # Upload coverage report
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: coverage.xml
+          path: backend/coverage.xml
+
+  test_frontend:
+    # Run frontend tests on latest Linux ubuntu environment
+    name: Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      # Uses checkout to pull code from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Clear cache (optional, for troubleshooting)
+      - name: Clear cache
+        run: |
+          rm -rf ~/.npm
+
+      # Cache Node.js dependencies
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Set up Node.js version to 14.x
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.14.0'
+
+      # Install the necessary dependencies
+      - name: Install dependencies
+        working-directory: frontend
+        run: |
+          npm install --verbose
+
+      # Run frontend tests
+      - name: Run Frontend Tests
+        working-directory: frontend
+        run: |
+          npm test

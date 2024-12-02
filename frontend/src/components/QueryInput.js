@@ -120,6 +120,7 @@ const QueryInput = () => {
           <div
             className="flex cursor-pointer bg-white border border-gray-300 rounded-sm p-2 shadow hover:bg-blue-50"
             onClick={handleClearResults}
+            aria-label="Clear Output"
           >
             <div className="flex items-center justify-center">
               <PiBroomFill className="text-2xl text-gray-700" />
@@ -141,7 +142,11 @@ const QueryInput = () => {
           <QueryResults results={results} /> // Display Query Results once loading is done
         ) : (
           // No results or error message
-          <div className="h-full w-full"> {error && <div className="text-red-500 text-sm mb-4">{error}</div>} </div>
+          <div className="h-full w-full">
+            {error && (
+              <div className="text-red-500 text-sm mb-4">{error}</div>
+            )}
+          </div>
         )}
       </div>
 
@@ -163,6 +168,7 @@ const QueryInput = () => {
               <button
                 type="button"
                 className="rounded-lg text-gray-700 hover:text-gray-300"
+                aria-label="Info"
               >
                 <FaInfoCircle className="h-6 w-6" />
               </button>
@@ -171,6 +177,7 @@ const QueryInput = () => {
               <button
                 type="submit"
                 className="rounded-lg text-gray-800 hover:text-gray-400"
+                aria-label="Submit"
               >
                 <HiPaperAirplane className="h-6 w-6" />
               </button>

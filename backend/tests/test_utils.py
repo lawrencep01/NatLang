@@ -9,6 +9,7 @@ from utils import (
     get_new_rows,
 )
 
+
 # Mock database connection and cursor
 @pytest.fixture
 def mock_db_connection():
@@ -17,6 +18,7 @@ def mock_db_connection():
         mock_cursor = mock_conn.cursor.return_value.__enter__.return_value
         mock_get_db_connection.return_value.__enter__.return_value = mock_conn
         yield mock_cursor
+
 
 def test_fetch_db_schema(mock_db_connection):
     mock_db_connection.fetchall.return_value = [
@@ -70,9 +72,13 @@ def test_fetch_db_schema(mock_db_connection):
     }
     assert result == expected
 
+
 def test_fetch_table_list(mock_db_connection):
     mock_db_connection.fetchall.side_effect = [
-        [{"table_name": "users", "description": "User table"}, {"table_name": "orders", "description": "Order table"}],
+        [
+            {"table_name": "users", "description": "User table"},
+            {"table_name": "orders", "description": "Order table"},
+        ],
     ]
     tables = fetch_table_list("test_connection_id")
     expected = [
@@ -81,30 +87,42 @@ def test_fetch_table_list(mock_db_connection):
     ]
     assert tables == expected
 
+
 def test_fetch_table_details(mock_db_connection):
     mock_db_connection.fetchall.side_effect = [
-        [{"column_name": "id", "data_type": "integer"}, {"column_name": "name", "data_type": "text"}],
+        [
+            {"column_name": "id", "data_type": "integer"},
+            {"column_name": "name", "data_type": "text"},
+        ],
         [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}],
     ]
     mock_db_connection.fetchone.side_effect = [
         {"count": 2},
-        {"description": "User table description"}
+        {"description": "User table description"},
     ]
-    columns, row_count, data, description = fetch_table_details("test_connection_id", "users")
-    assert columns == [{"name": "id", "type": "integer"}, {"name": "name", "type": "text"}]
+    columns, row_count, data, description = fetch_table_details(
+        "test_connection_id", "users"
+    )
+    assert columns == [
+        {"name": "id", "type": "integer"},
+        {"name": "name", "type": "text"},
+    ]
     assert row_count == 2
     assert data == [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
     assert description == "User table description"
+
 
 def test_get_table_name():
     query = "SELECT * FROM users WHERE id = 1"
     table_name = get_table_name(query)
     assert table_name == "users"
 
+
 def test_get_where_clause():
     query = "DELETE FROM users WHERE id = 1"
     where_clause = get_where_clause(query)
     assert where_clause == "id = 1"
+
 
 def test_get_new_rows():
     pre = [{"id": 1, "name": "Alice"}]

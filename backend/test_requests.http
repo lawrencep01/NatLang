@@ -3,7 +3,7 @@ POST http://127.0.0.1:5000/connections
 Content-Type: application/json
 
 {
-    "name": "Test Connection",
+    "name": "",
     "host": "localhost",
     "port": 5432,
     "username": "lawrencephan",
