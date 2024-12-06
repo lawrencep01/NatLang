@@ -1,6 +1,6 @@
-# models.py
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
+from config import Config
 
 Base = declarative_base()
 
@@ -18,7 +18,10 @@ class DatabaseConnection(Base):
 
 
 # Create SQLite database to store database connection details
-DATABASE_URL = "sqlite:///connections.db"
+DATABASE_URL = Config.DATABASE_URL or "sqlite:///connections.db"
+
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
+
+print(f"Using connection database URL: {engine.url}")

@@ -1,77 +1,75 @@
 ### Create a new database connection
-POST http://127.0.0.1:5000/connections
+POST http://127.0.0.1:8080/connections
 Content-Type: application/json
 
 {
-    "name": "",
+    "name": "Admin Adventureworks Connection",
     "host": "localhost",
     "port": 5432,
     "username": "lawrencephan",
     "password": "",
-    "database": "nfl_management"
+    "database": "adventureworks"
 }
 
 ### Create another database connection
-POST http://127.0.0.1:5000/connections
+POST http://127.0.0.1:8080/connections
 Content-Type: application/json
 
 {
-    "name": "Music DB Connection",
+    "name": "Chinook Connection",
     "host": "localhost",
     "port": 5432,
     "username": "lawrencephan",
     "password": "",
     "database": "chinook"
 }
+
 ### Get all database connections
-GET http://127.0.0.1:5000/connections
+GET http://127.0.0.1:8080/connections
 
 ### Update a database connection
-PUT http://127.0.0.1:5000/connections/1
+PUT http://127.0.0.1:8080/connections/1
 Content-Type: application/json
 
 {
-    "name": "NFL DB Connection",
+    "name": "HR Adventureworks Connection",
     "host": "localhost",
     "port": 5432,
-    "username": "lawrencephan",
-    "password": "",
-    "database": "nfl_management"
+    "username": "hr_user",
+    "password": "hr_password",
+    "database": "adventureworks"
 }
 
 ### Delete a database connection
-DELETE http://127.0.0.1:5000/connections/1
+DELETE http://127.0.0.1:8080/connections/4
 
-### Status
-GET http://127.0.0.1:5000/status
+### Get database name
+GET http://127.0.0.1:8080/db-name?connection_id=1
 
-### Test Natural Language Query
-POST http://127.0.0.1:5000/queries?connection_id=2
+### Get schema of the database
+GET http://127.0.0.1:8080/schema?connection_id=4
+
+### Generate descriptions for tables and columns
+POST http://127.0.0.1:8080/generate-descriptions?connection_id=100
+
+### List all available tables in the database
+GET http://127.0.0.1:8080/tables?connection_id=1
+
+### Get details of a specific table in the database
+GET http://127.0.0.1:8080/table-details/employee?connection_id=1&schema_name=humanresources
+
+### Analyze a SQL query for appropriate table name and description
+POST http://127.0.0.1:8080/analyze?connection_id=1
 Content-Type: application/json
 
 {
     "query": "list all artists"
 }
 
-### Test Table List
-GET http://127.0.0.1:5000/tables?connection_id=2
-
-### Test Table Details
-GET http://127.0.0.1:5000/table-details/artist?connection_id=2
-
-### Test Analyze Query
-POST http://127.0.0.1:5000/analyze?connection_id=2
+### Execute a natural language query
+POST http://127.0.0.1:8080/queries?connection_id=2
 Content-Type: application/json
 
 {
-    "query": "SELECT * FROM artist WHERE name LIKE 'A%'"
+    "query": "list all people and their email addresses"
 }
-
-### Test Schema
-GET http://127.0.0.1:5000/schema?connection_id=4
-
-### Test Generate Descriptions
-POST http://127.0.0.1:5000/generate-descriptions?connection_id=2
-
-### Test GET database name
-GET http://127.0.0.1:5000/db-name?connection_id=2

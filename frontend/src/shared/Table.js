@@ -215,6 +215,24 @@ const Table = ({
     );
   };
 
+  const exportToCSV = () => {
+    const csvHeaders = visibleHeaders.join(",");
+    const csvRows = filteredData.map((row) =>
+      visibleHeaders.map((header) => row[header]).join(",")
+    );
+    const csvContent = [csvHeaders, ...csvRows].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${tableName}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className={`overflow-x-auto ${className}`}>
       <div className="flex items-center justify-between mb-2">
@@ -222,7 +240,10 @@ const Table = ({
           <h2 className="text-base font-semibold tracking-tight">{tableName}</h2>
           <p className="text-xs text-gray-400">{description}</p>
         </div>
-        <button className="bg-gray-800 hover:bg-gray-300 text-white text-sm px-3 py-2 rounded-sm self-end">
+        <button
+          className="bg-gray-800 hover:bg-gray-300 text-white text-sm px-3 py-2 rounded-sm self-end"
+          onClick={exportToCSV}
+        >
           Export to CSV
         </button>
       </div>

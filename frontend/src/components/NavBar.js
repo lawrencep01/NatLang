@@ -38,11 +38,6 @@ const NavBar = () => {
               History
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/" className={getLinkClass}>
-              Usage
-            </NavLink>
-          </li>
         </ul>
       </div>
     </nav>

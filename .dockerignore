@@ -1,0 +1,15 @@
+# Exclude Python virtual environments
+venv/
+backend/__pycache__/
+
+# Exclude version control directories
+.git/
+.gitignore
+
+
+# Exclude Docker files
+Dockerfile
+docker-compose.test.yml
+
+# Ignore the frontend build directory
+frontend/

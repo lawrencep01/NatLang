@@ -20,15 +20,6 @@ const App = () => {
               path="/schema"
               element={<SchemaDiagram />}
             />
-            {/* Wrapper for other routes with container classes */}
-            <Route
-              path="/"
-              element={
-                <div className="container mx-auto px-3">
-                  <h2 className="mt-4">To Do</h2>
-                </div>
-              }
-            />
             <Route
               path="/connections"
               element={

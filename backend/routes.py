@@ -3,9 +3,11 @@ from database import get_db_connection
 from natlang import convert_query, analyze_query, generate_details
 from collections import defaultdict
 from models import DatabaseConnection, SessionLocal
+import psycopg2
+from psycopg2 import OperationalError
 from utils import (
     fetch_table_list,
-    fetch_db_schema,
+    fetch_db_schemas,
     get_table_name,
     get_where_clause,
     get_new_rows,
@@ -21,12 +23,28 @@ def setup_routes(app):
     @app.route("/connections", methods=["POST"])
     def create_connection():
         data = request.get_json()
+        print(f"Received data: {data}")
         session = SessionLocal()
         try:
+            # Check if the database exists
+            try:
+                connection = psycopg2.connect(
+                    host=data["host"],
+                    port=data["port"],
+                    database=data["database"],
+                    user=data["username"],
+                    password=data["password"],
+                )
+                connection.close()
+            except OperationalError:
+                return (
+                    jsonify({"error": "Database does not exist or cannot be reached"}),
+                    400,
+                )
             new_connection = DatabaseConnection(**data)
             session.add(new_connection)
             session.commit()
-            return jsonify({"message": "Connection created successfully"}), 201
+            return jsonify({"message": "Connection created successfully", "id": new_connection.id}), 201
         except Exception as e:
             session.rollback()
             return jsonify({"error": str(e)}), 500
@@ -124,7 +142,7 @@ def setup_routes(app):
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        schema_info = fetch_db_schema(connection_id)
+        schema_info = fetch_db_schemas(connection_id)
         if not schema_info:
             return jsonify({"error": "Failed to fetch schema information"}), 500
         return jsonify({"schema": schema_info}), 200
@@ -135,7 +153,7 @@ def setup_routes(app):
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        schema = fetch_db_schema(connection_id)
+        schema = fetch_db_schemas(connection_id)
         if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
         try:
@@ -187,8 +205,6 @@ def setup_routes(app):
                 if not commands:
                     return jsonify({"error": "Failed to generate SQL commands"}), 500
 
-                print(commands)
-
                 # Filter out empty commands, split into a list of commands, and execute each command
                 commands = [c.strip() for c in commands.split(";") if c.strip()]
                 for command in commands:
@@ -216,16 +232,20 @@ def setup_routes(app):
     @app.route("/table-details/<table_name>", methods=["GET"])
     def get_table_details(table_name):
         connection_id = request.args.get("connection_id")
+        schema_name = request.args.get(
+            "schema_name", "public"
+        )  # Default to 'public' schema if not provided
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
         try:
             columns, row_count, data, description = fetch_table_details(
-                connection_id, table_name
+                connection_id, table_name, schema_name
             )
             return (
                 jsonify(
                     {
                         "name": table_name,
+                        "schema": schema_name,
                         "columns": columns,
                         "rowCount": row_count,
                         "data": data,
@@ -248,7 +268,7 @@ def setup_routes(app):
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        schema = fetch_db_schema(connection_id)
+        schema = fetch_db_schemas(connection_id)
         if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
 
@@ -271,7 +291,7 @@ def setup_routes(app):
         connection_id = request.args.get("connection_id")
         if not connection_id:
             return jsonify({"error": "connection_id is required"}), 400
-        schema = fetch_db_schema(connection_id)
+        schema = fetch_db_schemas(connection_id)
         if not schema:
             return jsonify({"error": "Failed to fetch table schema"}), 500
 
